@@ -2,6 +2,9 @@ export interface CameraControls {
   stop: () => void;
   toggleTorch: () => boolean;
   hasTorch: boolean;
+  hasZoom: boolean;
+  zoomRange: { min: number, max: number, step: number } | null;
+  setZoom: (value: number) => void;
   videoElement: HTMLVideoElement;
 }
 
@@ -42,17 +45,28 @@ export const startCamera = async (
 
   animationFrameId = requestAnimationFrame(processFrame);
 
-  // Torch support
+  // Torch and zoom support
   const track = stream.getVideoTracks()[0];
   const capabilities = track.getCapabilities ? track.getCapabilities() : {};
   let torchOn = false;
   
   // @ts-ignore - TS doesn't know torch is a capability
   const hasTorch = !!capabilities.torch;
+  // @ts-ignore
+  const zoomCapability = capabilities.zoom;
+  const hasZoom = !!zoomCapability;
 
   return {
     videoElement: video,
     hasTorch,
+    hasZoom,
+    zoomRange: hasZoom ? { min: zoomCapability.min, max: zoomCapability.max, step: zoomCapability.step } : null,
+    setZoom: (value: number) => {
+      if (!hasZoom) return;
+      track.applyConstraints({
+        advanced: [{ zoom: value } as any]
+      });
+    },
     toggleTorch: () => {
       if (!hasTorch) return false;
       torchOn = !torchOn;

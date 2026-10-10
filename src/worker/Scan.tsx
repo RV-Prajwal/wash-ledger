@@ -68,10 +68,18 @@ export const ScanScreen = () => {
     };
   }, []);
 
+  const [zoomValue, setZoomValue] = useState<number>(1);
+
   const handleTorch = () => {
     if (controls && controls.hasTorch) {
       setTorchOn(controls.toggleTorch());
     }
+  };
+
+  const handleZoom = (e: Event) => {
+    const value = parseFloat((e.target as HTMLInputElement).value);
+    setZoomValue(value);
+    if (controls) controls.setZoom(value);
   };
 
   const handleFallback = () => {
@@ -127,6 +135,22 @@ export const ScanScreen = () => {
 
       {/* Bottom Area */}
       <div style={{ position: 'absolute', bottom: '48px', left: '0', right: '0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+        {controls?.hasZoom && controls.zoomRange && (
+          <div class="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 24px', borderRadius: '32px', width: '70%', background: 'rgba(255, 255, 255, 0.1)' }}>
+            <span style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>1x</span>
+            <input 
+              type="range" 
+              min={controls.zoomRange.min} 
+              max={Math.min(controls.zoomRange.max, 5)} 
+              step={controls.zoomRange.step || 0.1} 
+              value={zoomValue} 
+              onInput={handleZoom} 
+              style={{ flex: 1, accentColor: 'var(--primary)' }}
+            />
+            <span style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>{Math.min(controls.zoomRange.max, 5)}x</span>
+          </div>
+        )}
+
         {initializing && <div class="glass-panel" style={{ color: 'white', padding: '12px 24px' }}>Loading AI Models...</div>}
         
         {showFallback && (
