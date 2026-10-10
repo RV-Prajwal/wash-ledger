@@ -9,6 +9,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'models/*.onnx'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,mjs}'],
+        maximumFileSizeToCacheInBytes: 30 * 1024 * 1024
+      },
       manifest: {
         name: 'Wash Ledger',
         short_name: 'WashLedger',

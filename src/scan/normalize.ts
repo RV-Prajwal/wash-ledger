@@ -16,9 +16,12 @@ const fixLookAlikes = (char: string, expectedType: 'letter' | 'digit'): string =
 
 export const normalizePlate = (rawText: string): string => {
   // Uppercase and strip all non-alphanumeric characters
-  const clean = rawText.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  let clean = rawText.toUpperCase().replace(/[^A-Z0-9]/g, '');
   
-  if (clean.length < 8 || clean.length > 10) {
+  // Strip 'IND' which is commonly misread from the blue strip/hologram
+  clean = clean.replace(/IND/g, '');
+  
+  if (clean.length < 8 || clean.length > 11) {
     return clean; // Cannot reliably map positions if length is completely wrong, return as-is
   }
 
@@ -32,7 +35,7 @@ export const normalizePlate = (rawText: string): string => {
   const len = clean.length;
   
   for (let i = 0; i < len; i++) {
-    let expectedType: 'letter' | 'digit' | 'any' = 'any';
+    let expectedType: 'letter' | 'digit';
     
     if (i === 0 || i === 1) {
       expectedType = 'letter';
@@ -44,8 +47,12 @@ export const normalizePlate = (rawText: string): string => {
       expectedType = 'letter'; // Middle part (series)
     }
     
-    normalized += expectedType !== 'any' ? fixLookAlikes(clean[i], expectedType) : clean[i];
+    normalized += fixLookAlikes(clean[i], expectedType);
   }
   
   return normalized;
+};
+
+export const isValidPlate = (plate: string): boolean => {
+  return /^[A-Z]{2}\d{2}[A-Z]{1,3}\d{4}$/.test(plate);
 };

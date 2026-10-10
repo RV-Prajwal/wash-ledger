@@ -12,6 +12,7 @@ export const ScanScreen = () => {
   const [torchOn, setTorchOn] = useState(false);
   const [initializing, setInitializing] = useState(true);
   const [showFallback, setShowFallback] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
   
   // To avoid multiple route pushes
   const acceptedRef = useRef(false);
@@ -42,14 +43,15 @@ export const ScanScreen = () => {
               // Stop camera and route to confirm with pre-filled plate
               currentControls?.stop();
               // Pass the plate via state or URL
-              route(`/confirm?plate=${acceptedPlate}`, true);
+              route(`/confirm?plate=${acceptedPlate.text}${acceptedPlate.isLowConfidence ? '&lowConfidence=true' : ''}`, true);
             }
           });
           setControls(currentControls);
           setInitializing(false);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Camera/Pipeline init failed", err);
+        setInitError(err.message || 'Failed to initialize AI models.');
         setInitializing(false);
         setShowFallback(true);
       }
@@ -128,10 +130,13 @@ export const ScanScreen = () => {
         {initializing && <div class="glass-panel" style={{ color: 'white', padding: '12px 24px' }}>Loading AI Models...</div>}
         
         {showFallback && (
-          <button class="btn btn-primary btn-large" style={{ padding: '0 32px' }} onClick={handleFallback}>
-            <Keyboard size={24} />
-            Type Plate Manually
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            {initError && <div class="glass-panel" style={{ color: '#ff6b6b', padding: '8px 16px', fontSize: '14px', maxWidth: '80%', textAlign: 'center' }}>{initError}</div>}
+            <button class="btn btn-primary btn-large" style={{ padding: '0 32px' }} onClick={handleFallback}>
+              <Keyboard size={24} />
+              Type Plate Manually
+            </button>
+          </div>
         )}
       </div>
     </div>

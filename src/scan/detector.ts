@@ -1,4 +1,4 @@
-import * as ort from 'onnxruntime-web/wasm';
+import { ort } from './ort';
 
 export interface BoundingBox {
   x: number;
@@ -18,16 +18,14 @@ export const createDetector = (): Detector => {
   
   return {
     init: async () => {
-      // Set wasm paths and disable threads to prevent Vite bundler errors with .mjs files
-      ort.env.wasm.wasmPaths = '/';
-      ort.env.wasm.numThreads = 1;
-      try {
-        session = await ort.InferenceSession.create('/models/detector.onnx', { 
-          executionProviders: ['wasm']
-        });
-      } catch (err) {
-        console.warn('Detector model not found in /models/detector.onnx, waiting for user to upload it.');
+      const modelUrl = '/models/detector.onnx';
+      const res = await fetch(modelUrl, { method: 'HEAD' });
+      if (!res.ok) {
+        throw new Error(`Detector model not found at ${modelUrl}`);
       }
+      session = await ort.InferenceSession.create(modelUrl, { 
+        executionProviders: ['wasm']
+      });
     },
     detect: async (canvas: HTMLCanvasElement) => {
       if (!session) return null;

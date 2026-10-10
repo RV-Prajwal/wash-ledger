@@ -9,6 +9,7 @@ import { Ledger } from './admin/Ledger';
 import { Prices } from './admin/Prices';
 import { ScanScreen } from './worker/Scan';
 import { DevTest } from './worker/DevTest';
+import { TestHarness } from './worker/TestHarness';
 import { Workers } from './admin/Workers';
 import './index.css';
 
@@ -17,6 +18,7 @@ export function App() {
     <Router>
       <Route path="/login" component={Login} />
       <Route path="/dev-test" component={DevTest} />
+      <Route path="/test-harness" component={TestHarness} />
       
       {/* Worker Routes */}
       <Route path="/" component={() => (

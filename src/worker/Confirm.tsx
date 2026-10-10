@@ -21,13 +21,21 @@ export const Confirm = () => {
   const [loading, setLoading] = useState(false);
   const [warning, setWarning] = useState('');
   
+  const [lowConfidence, setLowConfidence] = useState(false);
+  
   useEffect(() => {
     getServices().then(data => setServices(data));
     
     const searchParams = new URLSearchParams(window.location.search);
     const initialPlate = searchParams.get('plate');
+    const isLowConfidence = searchParams.get('lowConfidence') === 'true';
+    
     if (initialPlate) {
       setPlate(validatePlate(initialPlate));
+    }
+    if (isLowConfidence) {
+      setLowConfidence(true);
+      setWarning('Check the plate number. Model confidence was low.');
     }
   }, []);
 
@@ -65,11 +73,12 @@ export const Confirm = () => {
 
     setLoading(true);
     
-    // Check duplicate warning
-    if (!warning) {
+    // Check duplicate warning (ignore low confidence warning for this check)
+    if (!warning || lowConfidence) {
       const isDuplicate = await checkRecentDuplicate(formattedPlate, user.uid);
       if (isDuplicate) {
         setWarning('This plate was recorded recently. Save again to confirm.');
+        setLowConfidence(false); // Switch to duplicate warning
         setLoading(false);
         return;
       }
@@ -116,7 +125,7 @@ export const Confirm = () => {
       )}
 
       <form onSubmit={handleSave} class="flex-col gap-4">
-        <div class="glass-panel">
+        <div class="glass-panel" style={lowConfidence ? { borderColor: 'var(--danger)' } : {}}>
           <label class="text-muted fw-bold mb-4" style={{ display: 'block' }}>Vehicle Plate</label>
           <input 
             type="text" 
@@ -125,9 +134,10 @@ export const Confirm = () => {
             onInput={(e) => {
               setPlate(validatePlate((e.target as HTMLInputElement).value));
               setWarning('');
+              setLowConfidence(false);
             }}
             placeholder="KA01AB1234"
-            style={{ fontSize: '1.5rem', textTransform: 'uppercase', textAlign: 'center', letterSpacing: '2px' }}
+            style={{ fontSize: '1.5rem', textTransform: 'uppercase', textAlign: 'center', letterSpacing: '2px', color: lowConfidence ? 'var(--danger)' : 'inherit' }}
             required
           />
         </div>
