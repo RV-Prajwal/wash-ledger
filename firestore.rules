@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserData().role == 'admin' && getUserData().active == true;
+    }
+    
+    function isActiveUser() {
+      return isAuthenticated() && getUserData().active == true;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Services Collection
+    match /services/{serviceId} {
+      allow read: if isActiveUser();
+      allow write: if isAdmin();
+    }
+
+    // Washes Collection
+    match /washes/{washId} {
+      allow read: if isAuthenticated() && (isAdmin() || request.auth.uid == resource.data.workerId);
+      allow create: if isActiveUser() && request.resource.data.workerId == request.auth.uid;
+      allow update, delete: if isAdmin();
+      
+      // Audit trail for washes
+      match /audit/{auditId} {
+        allow read, write: if isAdmin();
+      }
+    }
+
+    // Daily Stats Collection
+    match /dailyStats/{dateKey} {
+      allow read: if isAdmin();
+      allow create: if isActiveUser() && request.resource.data.count == 1;
+      allow update: if isActiveUser() && request.resource.data.count == resource.data.count + 1;
+      allow update, delete: if isAdmin();
+    }
+  }
+}
