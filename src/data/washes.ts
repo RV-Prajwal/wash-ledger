@@ -12,7 +12,7 @@ export const getISTDateKey = (date = new Date()) => {
   return istTime.toISOString().split('T')[0];
 };
 
-export const saveWash = async (washData: Omit<Wash, 'id' | 'washedAt' | 'deviceTime' | 'dateKey' | 'voided'>, workerId: string) => {
+export const saveWash = async (washData: Omit<Wash, 'id' | 'washedAt' | 'deviceTime' | 'dateKey' | 'voided' | 'workerId'>, workerId: string) => {
   const batch = writeBatch(db);
   const washRef = doc(collection(db, 'washes'));
   const dateKey = getISTDateKey();

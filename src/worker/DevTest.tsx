@@ -43,8 +43,11 @@ export const DevTest = () => {
       // Simulate feeding frames (e.g. 5 frames) to see if it accepts
       let accepted: string | null = null;
       for (let f = 0; f < 5; f++) {
-        accepted = await pipeline.processFrame(canvas);
-        if (accepted) break;
+        const res = await pipeline.processFrame(canvas);
+        if (res) {
+          accepted = res.text;
+          break;
+        }
       }
       
       const timeMs = performance.now() - startTime;
