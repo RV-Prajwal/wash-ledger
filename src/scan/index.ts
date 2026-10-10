@@ -80,6 +80,26 @@ export class ScanPipeline {
           normalizedSplit = normalizePlate(splitResult.text);
           validSplit = isValidPlate(normalizedSplit);
         }
+      } else {
+        // Vertical Split for Single-Line plates
+        // Since model has a 9-slot limit, a 10-char single line plate gets garbled.
+        // We split it vertically at 52% width (slight overlap) into two ~2:1 crops.
+        const wLeft = box.width * 0.52;
+        const wRight = box.width * 0.52;
+        const leftBox = { ...box, width: wLeft };
+        const rightBox = { ...box, x: box.x + box.width * 0.48, width: wRight };
+
+        const leftRead = await this.reader.read(canvas, leftBox);
+        const rightRead = await this.reader.read(canvas, rightBox);
+
+        if (leftRead && rightRead) {
+          splitResult = {
+            text: leftRead.text + rightRead.text,
+            confidences: [...leftRead.confidences, ...rightRead.confidences]
+          };
+          normalizedSplit = normalizePlate(splitResult.text);
+          validSplit = isValidPlate(normalizedSplit);
+        }
       }
 
       // Choose result
@@ -94,7 +114,15 @@ export class ScanPipeline {
           bestResult = singleLineResult;
         }
       } else {
-        bestResult = singleLineResult;
+        if (validSingle) {
+          bestResult = singleLineResult;
+        } else if (validSplit) {
+          bestResult = splitResult;
+        } else if (splitResult) {
+          bestResult = splitResult;
+        } else {
+          bestResult = singleLineResult;
+        }
       }
 
       if (!bestResult) {
