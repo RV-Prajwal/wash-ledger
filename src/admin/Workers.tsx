@@ -423,11 +423,12 @@ export const Workers = () => {
 
                 return (
                   <div key={w.id} class="glass-panel" style={{ padding: '14px 16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {/* Worker Profile Header with Shift Stats */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
                         <div style={{
-                          width: '44px',
-                          height: '44px',
+                          width: '42px',
+                          height: '42px',
                           borderRadius: '12px',
                           background: w.active ? 'var(--primary-gradient)' : 'var(--border-light)',
                           color: w.active ? '#ffffff' : 'var(--text-muted)',
@@ -441,8 +442,16 @@ export const Workers = () => {
                         }}>
                           {w.email.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <div style={{ fontWeight: '800', fontSize: '14px', color: 'var(--text-main)', letterSpacing: '-0.2px' }}>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ 
+                            fontWeight: '800', 
+                            fontSize: '14px', 
+                            color: 'var(--text-main)', 
+                            letterSpacing: '-0.2px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}>
                             {w.email}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', marginTop: '3px' }}>
@@ -459,67 +468,77 @@ export const Workers = () => {
                         </div>
                       </div>
 
-                      {/* Actions: Enable/Disable and Delete */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <button 
-                          class="btn" 
-                          style={{ 
-                            minHeight: '34px', 
-                            padding: '0 10px', 
-                            fontSize: '12px',
-                            fontWeight: '700',
-                            color: w.active ? 'var(--danger)' : 'var(--success)',
-                            borderColor: w.active ? 'var(--danger-border)' : 'var(--success-border)',
-                            background: w.active ? 'var(--danger-bg)' : 'var(--success-bg)'
-                          }}
-                          onClick={() => toggleActive(w.id, w.active)}
-                          title={w.active ? 'Disable account' : 'Enable account'}
-                        >
-                          {w.active ? (
-                            <><XCircle size={14} /> Disable</>
-                          ) : (
-                            <><CheckCircle2 size={14} /> Enable</>
-                          )}
-                        </button>
-
-                        <button 
-                          class="btn" 
-                          style={{ 
-                            minHeight: '34px', 
-                            padding: '0 10px', 
-                            fontSize: '12px',
-                            fontWeight: '700',
-                            color: 'var(--danger)',
-                            borderColor: 'var(--danger-border)',
-                            background: 'var(--danger-bg)'
-                          }}
-                          onClick={() => {
-                            setDeleteTarget(w);
-                            setDeleteError('');
-                          }}
-                          title="Delete Worker Account"
-                        >
-                          <Trash2 size={14} />
-                          <span>Delete</span>
-                        </button>
+                      {/* Today's Productivity Badge */}
+                      <div style={{
+                        textAlign: 'right',
+                        flexShrink: 0,
+                        background: 'var(--bg-main)',
+                        padding: '6px 10px',
+                        borderRadius: '10px',
+                        border: '1px solid var(--border-light)'
+                      }}>
+                        <div style={{ fontSize: '12px', fontWeight: '800', color: count > 0 ? 'var(--primary)' : 'var(--text-main)' }}>
+                          {count} {count === 1 ? 'wash' : 'washes'}
+                        </div>
+                        {revenue > 0 && (
+                          <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--success)', marginTop: '1px' }}>
+                            ₹{revenue}
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Today's Productivity Badge */}
+                    {/* Responsive Full-Width Actions Row */}
                     <div style={{ 
-                      marginTop: '10px', 
-                      paddingTop: '8px', 
+                      marginTop: '12px', 
+                      paddingTop: '10px', 
                       borderTop: '1px solid var(--border-light)', 
                       display: 'flex', 
                       alignItems: 'center', 
-                      justifyContent: 'space-between',
-                      fontSize: '11px',
-                      color: 'var(--text-muted)'
+                      gap: '8px'
                     }}>
-                      <span>Today's Logged Washes:</span>
-                      <span style={{ fontWeight: '800', color: count > 0 ? 'var(--primary)' : 'var(--text-main)' }}>
-                        {count} washes {revenue > 0 && `(₹${revenue})`}
-                      </span>
+                      <button 
+                        class="btn" 
+                        style={{ 
+                          flex: 1,
+                          minHeight: '36px', 
+                          padding: '0 12px', 
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          color: w.active ? '#b45309' : 'var(--success)',
+                          borderColor: w.active ? '#fde68a' : 'var(--success-border)',
+                          background: w.active ? '#fffbeb' : 'var(--success-bg)'
+                        }}
+                        onClick={() => toggleActive(w.id, w.active)}
+                        title={w.active ? 'Disable account' : 'Enable account'}
+                      >
+                        {w.active ? (
+                          <><XCircle size={14} /> Disable Access</>
+                        ) : (
+                          <><CheckCircle2 size={14} /> Enable Access</>
+                        )}
+                      </button>
+
+                      <button 
+                        class="btn" 
+                        style={{ 
+                          minHeight: '36px', 
+                          padding: '0 12px', 
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          color: 'var(--danger)',
+                          borderColor: 'var(--danger-border)',
+                          background: 'var(--danger-bg)'
+                        }}
+                        onClick={() => {
+                          setDeleteTarget(w);
+                          setDeleteError('');
+                        }}
+                        title="Delete Worker Account"
+                      >
+                        <Trash2 size={14} />
+                        <span>Delete</span>
+                      </button>
                     </div>
                   </div>
                 );
