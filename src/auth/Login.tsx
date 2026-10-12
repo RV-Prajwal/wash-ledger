@@ -3,7 +3,8 @@ import { useState } from 'preact/hooks';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { route } from 'preact-router';
-import { LogIn } from 'lucide-preact';
+import { LogIn, AlertCircle, Mail, Lock, ShieldCheck, UserCheck } from 'lucide-preact';
+import loginHeroImg from '../assets/login-hero.jpg';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -19,48 +20,215 @@ export const Login = () => {
       await signInWithEmailAndPassword(auth, email, password);
       route('/', true);
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   };
 
+  const fillDemo = (role: 'worker' | 'admin') => {
+    if (role === 'worker') {
+      setEmail('worker1@wash.ceat.in');
+      setPassword('worker123');
+    } else {
+      setEmail('admin@wash.ceat.in');
+      setPassword('admin123');
+    }
+  };
+
   return (
-    <div class="container items-center" style="justify-content: center; height: 100vh;">
-      <div class="glass-panel" style="width: 100%; max-width: 400px;">
-        <div class="text-center mb-4">
-          <h2>Wash Ledger</h2>
-          <p class="text-muted mt-4">Sign in to your account</p>
+    <div class="app-shell" style={{ backgroundColor: '#ffffff' }}>
+      {/* Top Hero Banner matching the user's reference mockup */}
+      <div style={{ position: 'relative', width: '100%', overflow: 'hidden', background: '#0f172a' }}>
+        <img 
+          src={loginHeroImg} 
+          alt="CEAT Vehicle Wash & Care" 
+          style={{ width: '100%', height: '240px', objectFit: 'cover', display: 'block' }}
+        />
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(to top, #ffffff 0%, rgba(15,23,42,0.3) 60%, rgba(15,23,42,0.65) 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: 'max(16px, var(--safe-top)) 16px 16px 16px'
+        }}>
+          {/* Top Tag Badge */}
+          <div style={{
+            alignSelf: 'center',
+            background: 'rgba(15, 23, 42, 0.8)',
+            backdropFilter: 'blur(10px)',
+            color: '#ffffff',
+            padding: '6px 16px',
+            borderRadius: '24px',
+            fontSize: '12px',
+            fontWeight: '800',
+            letterSpacing: '0.5px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <span>⏱ At Your Time</span>
+            <span>•</span>
+            <span>At Your Place 📍</span>
+          </div>
+
+          <div></div>
         </div>
-        
-        {error && <div style="color: var(--danger); margin-bottom: 16px; text-align: center;">{error}</div>}
-        
-        <form onSubmit={handleLogin} class="flex-col gap-4">
-          <div>
-            <label class="text-muted fw-bold" style="font-size: 0.875rem; margin-bottom: 8px; display: block;">Email</label>
-            <input 
-              type="email" 
-              class="input-glass" 
-              value={email}
-              onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
-              required
-            />
+      </div>
+
+      {/* Main Login Form Container */}
+      <div style={{ 
+        flex: 1, 
+        padding: '0 20px calc(24px + var(--safe-bottom)) 20px', 
+        display: 'flex', 
+        flexDirection: 'column',
+        justifyContent: 'space-between'
+      }}>
+        <div>
+          {/* Title and Tagline */}
+          <div style={{ textAlign: 'center', margin: '12px 0 20px 0' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.5px', lineHeight: '1.2' }}>
+              India’s #1
+            </h1>
+            <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.3px', marginTop: '2px' }}>
+              Car & Bike Care App
+            </h2>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px', 
+              margin: '18px 0 16px 0',
+              color: 'var(--text-muted)',
+              fontSize: '13px',
+              fontWeight: '600'
+            }}>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+              <span>Log in to Wash Ledger</span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+            </div>
           </div>
-          <div>
-            <label class="text-muted fw-bold" style="font-size: 0.875rem; margin-bottom: 8px; display: block;">Password</label>
-            <input 
-              type="password" 
-              class="input-glass" 
-              value={password}
-              onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
-              required
-            />
+
+          {error && (
+            <div style={{
+              background: 'var(--danger-bg)',
+              border: '1px solid var(--danger-border)',
+              color: 'var(--danger)',
+              padding: '10px 14px',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '16px'
+            }}>
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} class="flex-col gap-3">
+            {/* Email Field with Icon */}
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+                Email Address
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Mail size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input 
+                  type="email" 
+                  class="input-glass" 
+                  placeholder="worker1@wash.ceat.in"
+                  value={email}
+                  onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
+                  style={{ paddingLeft: '42px', minHeight: '50px', fontSize: '15px' }}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Password Field with Icon */}
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+                Password
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input 
+                  type="password" 
+                  class="input-glass" 
+                  placeholder="••••••••"
+                  value={password}
+                  onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
+                  style={{ paddingLeft: '42px', minHeight: '50px', fontSize: '15px' }}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Solid High-Contrast Sign In Button */}
+            <button 
+              type="submit" 
+              disabled={loading}
+              style={{
+                width: '100%',
+                minHeight: '52px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: '#0f172a',
+                color: '#ffffff',
+                border: 'none',
+                fontWeight: '800',
+                fontSize: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                cursor: 'pointer',
+                marginTop: '8px',
+                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.25)',
+                transition: 'transform 0.15s ease'
+              }}
+            >
+              <LogIn size={20} />
+              <span>{loading ? 'Authenticating...' : 'Login / Sign In'}</span>
+            </button>
+          </form>
+
+          {/* Quick 1-Tap Demo Credentials */}
+          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '8px', fontWeight: '700', letterSpacing: '0.5px' }}>
+              QUICK DEMO ACCESS
+            </div>
+            <div class="grid-2">
+              <button 
+                type="button" 
+                class="secondary-action-btn"
+                onClick={() => fillDemo('worker')}
+                style={{ fontSize: '12px', minHeight: '40px', gap: '6px' }}
+              >
+                <UserCheck size={14} color="var(--primary)" />
+                <span>Worker Login</span>
+              </button>
+              <button 
+                type="button" 
+                class="secondary-action-btn"
+                onClick={() => fillDemo('admin')}
+                style={{ fontSize: '12px', minHeight: '40px', gap: '6px' }}
+              >
+                <ShieldCheck size={14} color="#7c3aed" />
+                <span>Admin Login</span>
+              </button>
+            </div>
           </div>
-          <button type="submit" class="btn btn-primary btn-large mt-4" disabled={loading} style="width: 100%;">
-            <LogIn size={24} />
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
+        </div>
+
+        {/* Footer legal disclaimer */}
+        <p style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-subtle)', marginTop: '24px', lineHeight: '1.4' }}>
+          By proceeding you agree to the <br />
+          <strong style={{ color: 'var(--text-muted)' }}>Terms & Conditions</strong> and <strong style={{ color: 'var(--text-muted)' }}>Privacy Policy</strong>
+        </p>
       </div>
     </div>
   );

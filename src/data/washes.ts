@@ -89,9 +89,9 @@ export const subscribeToWorkerWashes = (workerId: string, callback: (washes: Was
       hasPendingWrites: doc.metadata.hasPendingWrites
     } as Wash));
     
-    // Sort descending by deviceTime client-side and limit to 10
+    // Sort descending by deviceTime client-side and limit to 50
     washes.sort((a, b) => new Date(b.deviceTime).getTime() - new Date(a.deviceTime).getTime());
-    washes = washes.slice(0, 10);
+    washes = washes.slice(0, 50);
     
     callback(washes);
   });

@@ -88,7 +88,7 @@ export const ScanScreen = () => {
   };
 
   return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: '#000', overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '100vw', height: '100dvh', backgroundColor: '#000', overflow: 'hidden' }}>
       <video 
         ref={videoRef}
         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -99,45 +99,101 @@ export const ScanScreen = () => {
       {/* Guide Box */}
       <div style={{ 
         position: 'absolute', 
-        top: '50%', 
+        top: '45%', 
         left: '50%', 
         transform: 'translate(-50%, -50%)',
-        width: '80%', 
-        height: '25%', 
-        border: '4px solid var(--primary)', 
+        width: '84%', 
+        maxWidth: '360px',
+        height: '120px', 
+        border: '3px solid var(--primary)', 
         borderRadius: '16px',
-        boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)'
-      }}></div>
+        boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.55)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        pointerEvents: 'none'
+      }}>
+        <div style={{ 
+          background: 'rgba(0, 0, 0, 0.6)', 
+          backdropFilter: 'blur(4px)',
+          color: '#ffffff', 
+          fontSize: '11px', 
+          fontWeight: '700',
+          padding: '4px 10px', 
+          borderRadius: '12px',
+          letterSpacing: '0.5px',
+          textTransform: 'uppercase'
+        }}>
+          Fit Plate Here
+        </div>
+      </div>
 
-      {/* Top Bar */}
-      <div style={{ position: 'absolute', top: '24px', left: '24px', right: '24px', display: 'flex', justifyContent: 'space-between' }}>
-        <button class="btn" style={{ minWidth: '48px', minHeight: '48px', padding: '0', borderRadius: '50%' }} onClick={() => route('/')}>
-          <X size={24} />
+      {/* Top Bar with Safe-Area */}
+      <div style={{ 
+        position: 'absolute', 
+        top: 'max(20px, env(safe-area-inset-top, 20px))', 
+        left: '20px', 
+        right: '20px', 
+        display: 'flex', 
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        zIndex: 20
+      }}>
+        <button 
+          class="btn" 
+          style={{ minWidth: '44px', minHeight: '44px', padding: '0', borderRadius: '50%', background: 'rgba(0,0,0,0.5)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.2)' }} 
+          onClick={() => route('/')}
+          title="Close Camera"
+        >
+          <X size={22} />
         </button>
 
         {controls?.hasTorch && (
           <button 
             class="btn" 
             style={{ 
-              minWidth: '48px', 
-              minHeight: '48px', 
+              minWidth: '44px', 
+              minHeight: '44px', 
               padding: '0', 
               borderRadius: '50%', 
-              background: torchOn ? 'var(--primary)' : 'var(--glass-bg)',
-              color: torchOn ? 'white' : 'var(--text-main)'
+              background: torchOn ? 'var(--primary)' : 'rgba(0,0,0,0.5)',
+              color: '#ffffff',
+              border: '1px solid rgba(255,255,255,0.2)'
             }} 
             onClick={handleTorch}
+            title="Toggle Flashlight"
           >
-            <Flashlight size={24} />
+            <Flashlight size={20} />
           </button>
         )}
       </div>
 
-      {/* Bottom Area */}
-      <div style={{ position: 'absolute', bottom: '48px', left: '0', right: '0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+      {/* Bottom Area with Safe-Area */}
+      <div style={{ 
+        position: 'absolute', 
+        bottom: 'max(32px, env(safe-area-inset-bottom, 32px))', 
+        left: '16px', 
+        right: '16px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        gap: '14px',
+        zIndex: 20
+      }}>
         {controls?.hasZoom && controls.zoomRange && (
-          <div class="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 24px', borderRadius: '32px', width: '70%', background: 'rgba(255, 255, 255, 0.1)' }}>
-            <span style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>1x</span>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px', 
+            padding: '8px 20px', 
+            borderRadius: '32px', 
+            width: '85%', 
+            maxWidth: '320px',
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.15)'
+          }}>
+            <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold' }}>1x</span>
             <input 
               type="range" 
               min={controls.zoomRange.min} 
@@ -147,18 +203,37 @@ export const ScanScreen = () => {
               onInput={handleZoom} 
               style={{ flex: 1, accentColor: 'var(--primary)' }}
             />
-            <span style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>{Math.min(controls.zoomRange.max, 5)}x</span>
+            <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold' }}>{Math.min(controls.zoomRange.max, 5)}x</span>
           </div>
         )}
 
-        {initializing && <div class="glass-panel" style={{ color: 'white', padding: '12px 24px' }}>Loading AI Models...</div>}
+        {initializing && (
+          <div style={{ 
+            color: 'white', 
+            padding: '10px 20px', 
+            borderRadius: '20px',
+            background: 'rgba(0, 0, 0, 0.7)',
+            fontSize: '13px',
+            fontWeight: '600'
+          }}>
+            Starting AI Engine...
+          </div>
+        )}
         
         {showFallback && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            {initError && <div class="glass-panel" style={{ color: '#ff6b6b', padding: '8px 16px', fontSize: '14px', maxWidth: '80%', textAlign: 'center' }}>{initError}</div>}
-            <button class="btn btn-primary btn-large" style={{ padding: '0 32px' }} onClick={handleFallback}>
-              <Keyboard size={24} />
-              Type Plate Manually
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '100%', maxWidth: '320px' }}>
+            {initError && (
+              <div style={{ color: '#fca5a5', padding: '6px 14px', fontSize: '12px', textAlign: 'center', background: 'rgba(0,0,0,0.7)', borderRadius: '12px' }}>
+                {initError}
+              </div>
+            )}
+            <button 
+              class="scan-cta-btn" 
+              style={{ minHeight: '52px', width: '100%' }} 
+              onClick={handleFallback}
+            >
+              <Keyboard size={20} />
+              <span style={{ fontSize: '15px' }}>Type Plate Manually</span>
             </button>
           </div>
         )}

@@ -4,7 +4,10 @@ import { route } from 'preact-router';
 import { collection, getDocs, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { db, createSecondaryApp } from '../firebase';
-import { ArrowLeft, UserPlus, CheckCircle, XCircle } from 'lucide-preact';
+import { 
+  ArrowLeft, UserPlus, CheckCircle2, XCircle, 
+  Mail, Lock, User, ShieldAlert 
+} from 'lucide-preact';
 
 interface Worker {
   id: string;
@@ -17,7 +20,6 @@ export const Workers = () => {
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // New worker form
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [creating, setCreating] = useState(false);
@@ -50,13 +52,11 @@ export const Workers = () => {
     
     setCreating(true);
     try {
-      // Use secondary app to prevent logging admin out
       const secondaryApp = createSecondaryApp();
       const secondaryAuth = getAuth(secondaryApp);
       
       const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
       
-      // Add to users collection
       await setDoc(doc(db, 'users', cred.user.uid), {
         email,
         role: 'worker',
@@ -66,8 +66,7 @@ export const Workers = () => {
       setEmail('');
       setPassword('');
       await fetchWorkers();
-      alert('Worker created successfully!');
-      
+      alert('Worker account created successfully!');
     } catch (err: any) {
       console.error(err);
       alert(err.message);
@@ -87,66 +86,144 @@ export const Workers = () => {
   };
 
   return (
-    <div class="container">
-      <header class="header" style={{ borderRadius: '16px', margin: '-16px -16px 16px -16px', padding: '16px 24px' }}>
-        <div class="flex items-center gap-4">
-          <button class="btn" onClick={() => route('/admin')} style={{ minHeight: '40px', padding: '0 12px' }}>
-            <ArrowLeft size={20} />
+    <div class="app-shell">
+      {/* Mobile Top Header */}
+      <header class="app-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button 
+            class="icon-btn" 
+            onClick={() => route('/admin')}
+            title="Back to Dashboard"
+          >
+            <ArrowLeft size={18} />
           </button>
-          <h2 style={{ fontSize: '1.25rem' }}>Workers</h2>
+          <div>
+            <div class="brand-title">Manage Workers</div>
+            <div class="brand-subtitle">{workers.length} registered staff</div>
+          </div>
         </div>
       </header>
 
-      {/* Create form */}
-      <form class="glass-panel mb-4" onSubmit={handleCreate}>
-        <h3 class="mb-2">Add New Worker</h3>
-        <div class="flex-col gap-2">
-          <input 
-            type="email" 
-            class="input-glass" 
-            placeholder="Email (e.g. w1@wash.com)" 
-            value={email}
-            onChange={e => setEmail((e.target as HTMLInputElement).value)}
-            required
-          />
-          <input 
-            type="password" 
-            class="input-glass" 
-            placeholder="Password (min 6 chars)" 
-            value={password}
-            onChange={e => setPassword((e.target as HTMLInputElement).value)}
-            required
-          />
-          <button type="submit" class="btn btn-primary" disabled={creating}>
-            {creating ? 'Creating...' : <><UserPlus size={18} /> Create Worker</>}
-          </button>
-        </div>
-      </form>
-
-      <h3 class="mb-2">Worker List</h3>
-      {loading ? (
-        <div class="glass-panel text-center text-muted">Loading...</div>
-      ) : workers.length === 0 ? (
-        <div class="glass-panel text-center text-muted">No workers found.</div>
-      ) : (
-        <div class="flex-col gap-2">
-          {workers.map(w => (
-            <div key={w.id} class="glass-panel flex items-center justify-between" style={{ padding: '16px' }}>
-              <div>
-                <div class="fw-bold">{w.email}</div>
-                <div class="text-muted" style={{ fontSize: '0.8rem' }}>ID: {w.id.substring(0, 8)}...</div>
-              </div>
-              <button 
-                class="btn" 
-                style={{ background: 'var(--glass-bg)', padding: '8px 12px', color: w.active ? 'var(--danger)' : 'var(--success)' }}
-                onClick={() => toggleActive(w.id, w.active)}
-              >
-                {w.active ? <><XCircle size={16} /> Disable</> : <><CheckCircle size={16} /> Enable</>}
-              </button>
+      {/* Main Content */}
+      <main class="app-content safe-bottom-padding">
+        {/* Add New Worker Card */}
+        <form class="glass-panel" onSubmit={handleCreate} style={{ padding: '16px' }}>
+          <div style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '12px', letterSpacing: '0.5px' }}>
+            Add Center Worker
+          </div>
+          
+          <div class="flex-col gap-3">
+            <div style={{ position: 'relative' }}>
+              <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+              <input 
+                type="email" 
+                class="input-glass" 
+                placeholder="Worker Email (e.g. w2@wash.ceat.in)" 
+                value={email}
+                onChange={e => setEmail((e.target as HTMLInputElement).value)}
+                style={{ paddingLeft: '38px', minHeight: '44px', fontSize: '14px' }}
+                required
+              />
             </div>
-          ))}
+
+            <div style={{ position: 'relative' }}>
+              <Lock size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+              <input 
+                type="password" 
+                class="input-glass" 
+                placeholder="Password (min 6 characters)" 
+                value={password}
+                onChange={e => setPassword((e.target as HTMLInputElement).value)}
+                style={{ paddingLeft: '38px', minHeight: '44px', fontSize: '14px' }}
+                required
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              class="scan-cta-btn" 
+              disabled={creating}
+              style={{ minHeight: '46px', padding: '10px 16px', borderRadius: 'var(--radius-md)' }}
+            >
+              <UserPlus size={18} />
+              <span style={{ fontSize: '14px', fontWeight: '800' }}>
+                {creating ? 'Creating...' : 'Create Worker Account'}
+              </span>
+            </button>
+          </div>
+        </form>
+
+        {/* Worker Staff List */}
+        <div>
+          <div style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '0.5px', paddingLeft: '4px' }}>
+            Active Roster
+          </div>
+
+          {loading ? (
+            <div class="glass-panel text-center text-muted" style={{ padding: '36px 16px' }}>
+              Loading staff accounts...
+            </div>
+          ) : workers.length === 0 ? (
+            <div class="glass-panel text-center text-muted" style={{ padding: '36px 16px' }}>
+              No worker accounts found.
+            </div>
+          ) : (
+            <div class="flex-col gap-2">
+              {workers.map(w => (
+                <div key={w.id} class="glass-panel" style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      background: w.active ? 'var(--primary-light)' : 'var(--border-light)',
+                      color: w.active ? 'var(--primary)' : 'var(--text-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: '800',
+                      fontSize: '15px'
+                    }}>
+                      {w.email.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: '700', fontSize: '14px', color: 'var(--text-main)' }}>
+                        {w.email}
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {w.active ? (
+                          <span style={{ color: 'var(--success)', fontWeight: '700' }}>● Active</span>
+                        ) : (
+                          <span style={{ color: 'var(--danger)', fontWeight: '700' }}>● Disabled</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button 
+                    class="btn" 
+                    style={{ 
+                      minHeight: '34px', 
+                      padding: '0 12px', 
+                      fontSize: '12px',
+                      color: w.active ? 'var(--danger)' : 'var(--success)',
+                      borderColor: w.active ? 'var(--danger-border)' : 'var(--success-border)',
+                      background: w.active ? 'var(--danger-bg)' : 'var(--success-bg)'
+                    }}
+                    onClick={() => toggleActive(w.id, w.active)}
+                  >
+                    {w.active ? (
+                      <><XCircle size={14} /> Disable</>
+                    ) : (
+                      <><CheckCircle2 size={14} /> Enable</>
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </main>
     </div>
   );
 };

@@ -5,7 +5,7 @@ import { getServices } from '../data/services';
 import { saveWash, checkRecentDuplicate } from '../data/washes';
 import type { Service, Wash, PaymentMode, WashStatus } from '../data/types';
 import { useAuth } from '../auth/AuthGuard';
-import { ArrowLeft, Save, AlertTriangle } from 'lucide-preact';
+import { ArrowLeft, Save, AlertTriangle, Car, Bike, Check, Clock, IndianRupee } from 'lucide-preact';
 
 export const Confirm = () => {
   const { user } = useAuth();
@@ -20,7 +20,6 @@ export const Confirm = () => {
   
   const [loading, setLoading] = useState(false);
   const [warning, setWarning] = useState('');
-  
   const [lowConfidence, setLowConfidence] = useState(false);
   
   useEffect(() => {
@@ -35,11 +34,10 @@ export const Confirm = () => {
     }
     if (isLowConfidence) {
       setLowConfidence(true);
-      setWarning('Check the plate number. Model confidence was low.');
+      setWarning('Low scan confidence. Please verify the plate characters carefully.');
     }
   }, []);
 
-  // Update available services and price when vehicle type changes
   const filteredServices = services.filter(s => s.vehicleType === vehicleType);
   
   useEffect(() => {
@@ -57,7 +55,6 @@ export const Confirm = () => {
   };
 
   const validatePlate = (p: string) => {
-    // Basic formatting: uppercase, no spaces
     return p.toUpperCase().replace(/[^A-Z0-9]/g, '');
   };
 
@@ -67,18 +64,17 @@ export const Confirm = () => {
     
     const formattedPlate = validatePlate(plate);
     if (formattedPlate.length < 4) {
-      alert('Please enter a valid plate number.');
+      alert('Please enter a valid license plate number.');
       return;
     }
 
     setLoading(true);
     
-    // Check duplicate warning (ignore low confidence warning for this check)
     if (!warning || lowConfidence) {
       const isDuplicate = await checkRecentDuplicate(formattedPlate, user.uid);
       if (isDuplicate) {
-        setWarning('This plate was recorded recently. Save again to confirm.');
-        setLowConfidence(false); // Switch to duplicate warning
+        setWarning('This plate was recorded within the last 15 minutes. Tap "Save Wash" again if you wish to record another wash.');
+        setLowConfidence(false);
         setLoading(false);
         return;
       }
@@ -98,9 +94,7 @@ export const Confirm = () => {
         status,
       }, user.uid);
 
-      // Vibrate on success
       if ('vibrate' in navigator) navigator.vibrate(200);
-      
       route('/', true);
     } catch (err: any) {
       alert('Error saving wash: ' + err.message);
@@ -109,128 +103,246 @@ export const Confirm = () => {
   };
 
   return (
-    <div class="container">
-      <header class="flex items-center gap-4 mb-4">
-        <button class="btn" onClick={() => route('/')} style={{ minHeight: '48px', padding: '0 12px' }}>
-          <ArrowLeft size={24} />
-        </button>
-        <h2 style={{ fontSize: '1.5rem' }}>Record Wash</h2>
+    <div class="app-shell">
+      {/* Mobile Top Header */}
+      <header class="app-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button 
+            class="icon-btn" 
+            onClick={() => route('/')}
+            title="Back to Home"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <div class="brand-title">Record Wash</div>
+            <div class="brand-subtitle">Verify details & confirm entry</div>
+          </div>
+        </div>
       </header>
 
-      {warning && (
-        <div class="glass-panel mb-4 flex items-center gap-2" style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }}>
-          <AlertTriangle size={24} />
-          <div>{warning}</div>
-        </div>
-      )}
+      {/* Main Content */}
+      <main class="app-content safe-bottom-padding">
+        {warning && (
+          <div style={{
+            background: 'var(--warning-bg)',
+            border: '1px solid var(--warning-border)',
+            color: '#b45309',
+            padding: '12px 14px',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <AlertTriangle size={20} style={{ flexShrink: 0 }} />
+            <div>{warning}</div>
+          </div>
+        )}
 
-      <form onSubmit={handleSave} class="flex-col gap-4">
-        <div class="glass-panel" style={lowConfidence ? { borderColor: 'var(--danger)' } : {}}>
-          <label class="text-muted fw-bold mb-4" style={{ display: 'block' }}>Vehicle Plate</label>
-          <input 
-            type="text" 
-            class="input-glass" 
-            value={plate}
-            onInput={(e) => {
-              setPlate(validatePlate((e.target as HTMLInputElement).value));
-              setWarning('');
-              setLowConfidence(false);
-            }}
-            placeholder="KA01AB1234"
-            style={{ fontSize: '1.5rem', textTransform: 'uppercase', textAlign: 'center', letterSpacing: '2px', color: lowConfidence ? 'var(--danger)' : 'inherit' }}
-            required
-          />
-        </div>
+        <form onSubmit={handleSave} class="flex-col gap-4">
+          {/* License Plate Display / Input with realistic IND badge framing */}
+          <div class="glass-panel" style={{ padding: '16px' }}>
+            <label class="text-muted fw-bold" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', display: 'block' }}>
+              License Plate Number
+            </label>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              border: lowConfidence ? '2px solid var(--danger)' : '2px solid #0f172a',
+              borderRadius: 'var(--radius-md)',
+              overflow: 'hidden',
+              background: '#ffffff',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              <div style={{
+                background: '#0256d0',
+                color: '#ffffff',
+                padding: '12px 10px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: '900',
+                fontSize: '10px',
+                letterSpacing: '-0.5px',
+                userSelect: 'none'
+              }}>
+                <span>I</span>
+                <span>N</span>
+                <span>D</span>
+              </div>
+              <input 
+                type="text" 
+                value={plate}
+                onInput={(e) => {
+                  setPlate(validatePlate((e.target as HTMLInputElement).value));
+                  setWarning('');
+                  setLowConfidence(false);
+                }}
+                placeholder="KA01AB1234"
+                style={{
+                  flex: 1,
+                  border: 'none',
+                  outline: 'none',
+                  padding: '12px 16px',
+                  fontSize: '22px',
+                  fontWeight: '800',
+                  fontFamily: "'JetBrains Mono', 'Consolas', monospace",
+                  letterSpacing: '3px',
+                  textTransform: 'uppercase',
+                  textAlign: 'center',
+                  color: lowConfidence ? 'var(--danger)' : '#0f172a'
+                }}
+                required
+              />
+            </div>
+            {lowConfidence && (
+              <p style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '6px', textAlign: 'center' }}>
+                Please edit any misread characters before saving.
+              </p>
+            )}
+          </div>
 
-        <div class="grid-2">
-          <button 
-            type="button" 
-            class={`btn ${vehicleType === 'Bike' ? 'btn-primary' : ''}`}
-            onClick={() => setVehicleType('Bike')}
-          >
-            Bike
-          </button>
-          <button 
-            type="button" 
-            class={`btn ${vehicleType === 'Car' ? 'btn-primary' : ''}`}
-            onClick={() => setVehicleType('Car')}
-          >
-            Car
-          </button>
-        </div>
-
-        <div class="glass-panel flex-col gap-4">
+          {/* Vehicle Type Selection */}
           <div>
-            <label class="text-muted fw-bold mb-4" style={{ display: 'block' }}>Service Type</label>
-            <select class="input-glass" value={selectedServiceId} onChange={handleServiceChange} required>
-              {filteredServices.map(s => (
-                <option key={s.id} value={s.id}>{s.name} - ₹{s.price}</option>
-              ))}
-            </select>
+            <label class="text-muted fw-bold" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', display: 'block' }}>
+              Vehicle Type
+            </label>
+            <div class="grid-2">
+              <button 
+                type="button" 
+                class={`btn ${vehicleType === 'Bike' ? 'btn-primary' : ''}`}
+                style={{ minHeight: '52px', fontSize: '15px' }}
+                onClick={() => setVehicleType('Bike')}
+              >
+                <Bike size={20} />
+                <span>Bike / Two-Wheeler</span>
+              </button>
+              <button 
+                type="button" 
+                class={`btn ${vehicleType === 'Car' ? 'btn-primary' : ''}`}
+                style={{ minHeight: '52px', fontSize: '15px' }}
+                onClick={() => setVehicleType('Car')}
+              >
+                <Car size={20} />
+                <span>Car / 4-Wheeler</span>
+              </button>
+            </div>
           </div>
 
+          {/* Service & Price */}
+          <div class="glass-panel flex-col gap-4">
+            <div>
+              <label class="text-muted fw-bold" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px', display: 'block' }}>
+                Wash Package
+              </label>
+              <select 
+                class="input-glass" 
+                value={selectedServiceId} 
+                onChange={handleServiceChange} 
+                required
+                style={{ fontWeight: '600' }}
+              >
+                {filteredServices.map(s => (
+                  <option key={s.id} value={s.id}>{s.name} — ₹{s.price}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label class="text-muted fw-bold" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px', display: 'block' }}>
+                Charge Amount (₹)
+              </label>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', fontWeight: '800', color: 'var(--text-muted)', fontSize: '16px' }}>
+                  ₹
+                </span>
+                <input 
+                  type="number" 
+                  class="input-glass" 
+                  style={{ paddingLeft: '34px', fontSize: '18px', fontWeight: '800' }}
+                  value={price}
+                  onInput={(e) => setPrice(Number((e.target as HTMLInputElement).value))}
+                  required
+                  min="0"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Mode */}
           <div>
-            <label class="text-muted fw-bold mb-4" style={{ display: 'block' }}>Amount (₹)</label>
-            <input 
-              type="number" 
-              class="input-glass" 
-              value={price}
-              onInput={(e) => setPrice(Number((e.target as HTMLInputElement).value))}
-              required
-              min="0"
-            />
+            <label class="text-muted fw-bold" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', display: 'block' }}>
+              Payment Method
+            </label>
+            <div class="grid-2">
+              <button 
+                type="button" 
+                class={`btn ${paymentMode === 'Cash' ? 'btn-primary' : ''}`}
+                style={{ minHeight: '48px' }}
+                onClick={() => setPaymentMode('Cash')}
+              >
+                <span>Cash Payment</span>
+              </button>
+              <button 
+                type="button" 
+                class={`btn ${paymentMode === 'UPI' ? 'btn-primary' : ''}`}
+                style={{ minHeight: '48px' }}
+                onClick={() => setPaymentMode('UPI')}
+              >
+                <span>UPI / QR</span>
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div class="grid-2">
-          <button 
-            type="button" 
-            class={`btn ${paymentMode === 'Cash' ? 'btn-primary' : ''}`}
-            onClick={() => setPaymentMode('Cash')}
-          >
-            Cash
-          </button>
-          <button 
-            type="button" 
-            class={`btn ${paymentMode === 'UPI' ? 'btn-primary' : ''}`}
-            onClick={() => setPaymentMode('UPI')}
-          >
-            UPI
-          </button>
-        </div>
-
-        <div class="glass-panel flex items-center justify-between" style={{ padding: '16px' }}>
-          <span class="fw-bold">Payment Status</span>
-          <div class="flex gap-2">
-            <button 
-              type="button" 
-              class={`btn ${status === 'paid' ? 'btn-primary' : ''}`}
-              style={{ padding: '8px 16px', minHeight: '36px' }}
-              onClick={() => setStatus('paid')}
-            >
-              Paid
-            </button>
-            <button 
-              type="button" 
-              class={`btn ${status === 'pending' ? 'btn-primary' : ''}`}
-              style={{ padding: '8px 16px', minHeight: '36px', background: status === 'pending' ? 'var(--danger)' : 'var(--glass-bg)', color: status === 'pending' ? 'white' : 'var(--text-main)' }}
-              onClick={() => setStatus('pending')}
-            >
-              Pending
-            </button>
+          {/* Payment Status */}
+          <div class="glass-panel flex items-center justify-between" style={{ padding: '14px 16px' }}>
+            <div>
+              <div style={{ fontWeight: '700', fontSize: '14px' }}>Payment Collected?</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Status of the wash payment</div>
+            </div>
+            <div class="flex gap-2">
+              <button 
+                type="button" 
+                class={`btn ${status === 'paid' ? 'btn-primary' : ''}`}
+                style={{ padding: '8px 16px', minHeight: '40px', fontSize: '13px' }}
+                onClick={() => setStatus('paid')}
+              >
+                <Check size={16} /> Paid
+              </button>
+              <button 
+                type="button" 
+                class={`btn ${status === 'pending' ? 'btn-primary' : ''}`}
+                style={{ 
+                  padding: '8px 16px', 
+                  minHeight: '40px', 
+                  fontSize: '13px',
+                  background: status === 'pending' ? 'var(--warning)' : 'var(--surface)',
+                  color: status === 'pending' ? '#ffffff' : 'var(--text-main)',
+                  borderColor: status === 'pending' ? 'var(--warning)' : 'var(--border)'
+                }}
+                onClick={() => setStatus('pending')}
+              >
+                <Clock size={16} /> Pending
+              </button>
+            </div>
           </div>
-        </div>
 
-        <button 
-          type="submit" 
-          class="btn btn-primary btn-large mt-4" 
-          disabled={loading}
-          style={{ width: '100%', borderRadius: '24px' }}
-        >
-          <Save size={24} />
-          {loading ? 'Saving...' : 'Save Wash'}
-        </button>
-      </form>
+          {/* Submit Action */}
+          <button 
+            type="submit" 
+            class="scan-cta-btn" 
+            disabled={loading}
+            style={{ marginTop: '8px' }}
+          >
+            <Save size={22} />
+            <span style={{ fontSize: '17px', fontWeight: '800' }}>
+              {loading ? 'Saving Wash...' : 'Save & Complete Wash'}
+            </span>
+          </button>
+        </form>
+      </main>
     </div>
   );
 };

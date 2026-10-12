@@ -1,18 +1,21 @@
 import { h } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useMemo } from 'preact/hooks';
 import { route } from 'preact-router';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import type { Wash } from '../data/types';
 import { getISTDateKey, updateWash } from '../data/washes';
-import { ArrowLeft, CheckCircle, Clock, Download, Edit2, X } from 'lucide-preact';
+import { 
+  ArrowLeft, CheckCircle2, Clock, Download, 
+  Edit2, X, Car, Bike, Search, Ban, Sparkles
+} from 'lucide-preact';
 
 export const Ledger = () => {
   const [washes, setWashes] = useState<Wash[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Basic filter state for MVP
   const [date, setDate] = useState(getISTDateKey(new Date()));
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending' | 'voided'>('all');
 
   const fetchWashes = async () => {
     setLoading(true);
@@ -23,9 +26,8 @@ export const Ledger = () => {
       );
       const snap = await getDocs(q);
       const rawWashes = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Wash));
-      // Sort descending
       rawWashes.sort((a, b) => new Date(b.deviceTime).getTime() - new Date(a.deviceTime).getTime());
-      setWashes(rawWashes.slice(0, 50));
+      setWashes(rawWashes);
     } catch (err) {
       console.error(err);
     } finally {
@@ -41,7 +43,7 @@ export const Ledger = () => {
     if (!auth.currentUser) return;
     try {
       await updateWash(id, updates, auth.currentUser.uid, reason);
-      await fetchWashes(); // refresh
+      await fetchWashes();
     } catch (err) {
       console.error(err);
       alert('Failed to update wash.');
@@ -50,14 +52,14 @@ export const Ledger = () => {
 
   const handleVoid = async (wash: Wash) => {
     if (confirm(`Are you sure you want to void wash for ${wash.plate}?`)) {
-      await handleUpdate(wash.id!, { amount: 0 }, 'Voided by Admin');
+      await handleUpdate(wash.id!, { amount: 0, voided: true }, 'Voided by Admin');
     }
   };
 
   const handleEdit = async (wash: Wash) => {
-    const newPlate = prompt('Enter new plate:', wash.plate);
-    if (newPlate && newPlate !== wash.plate) {
-      await handleUpdate(wash.id!, { plate: newPlate }, 'Corrected Plate');
+    const newPlate = prompt('Enter corrected license plate:', wash.plate);
+    if (newPlate && newPlate.toUpperCase().trim() !== wash.plate) {
+      await handleUpdate(wash.id!, { plate: newPlate.toUpperCase().replace(/\s+/g, '') }, 'Corrected Plate');
     }
   };
 
@@ -80,89 +82,233 @@ export const Ledger = () => {
     document.body.removeChild(link);
   };
 
+  const filteredWashes = useMemo(() => {
+    return washes.filter(w => {
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toUpperCase();
+        if (!w.plate.toUpperCase().includes(q) && !w.serviceName.toUpperCase().includes(q)) {
+          return false;
+        }
+      }
+      if (statusFilter === 'paid') return w.status === 'paid' && !w.voided && w.amount > 0;
+      if (statusFilter === 'pending') return w.status === 'pending' && !w.voided && w.amount > 0;
+      if (statusFilter === 'voided') return w.voided || w.amount === 0;
+      return true;
+    });
+  }, [washes, searchQuery, statusFilter]);
+
+  const formatPlate = (plate: string) => {
+    const clean = plate.toUpperCase().replace(/\s+/g, '');
+    if (clean.length === 10) {
+      return `${clean.slice(0, 2)} ${clean.slice(2, 4)} ${clean.slice(4, 6)} ${clean.slice(6)}`;
+    }
+    return clean;
+  };
+
   return (
-    <div class="container">
-      <header class="header" style={{ borderRadius: '16px', margin: '-16px -16px 16px -16px', padding: '16px 24px' }}>
-        <div class="flex items-center gap-4">
-          <button class="btn" onClick={() => route('/admin')} style={{ minHeight: '40px', padding: '0 12px' }}>
-            <ArrowLeft size={20} />
+    <div class="app-shell">
+      {/* Mobile Top Header */}
+      <header class="app-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button 
+            class="icon-btn" 
+            onClick={() => route('/admin')}
+            title="Back to Dashboard"
+          >
+            <ArrowLeft size={18} />
           </button>
-          <h2 style={{ fontSize: '1.25rem' }}>Master Ledger</h2>
+          <div>
+            <div class="brand-title">Master Ledger</div>
+            <div class="brand-subtitle">{filteredWashes.length} entries found</div>
+          </div>
         </div>
+
+        <button 
+          class="icon-btn" 
+          onClick={exportCSV}
+          title="Export CSV"
+          style={{ background: 'var(--primary-light)', color: 'var(--primary)', borderColor: 'var(--primary-light)' }}
+        >
+          <Download size={18} />
+        </button>
       </header>
 
-      <div class="glass-panel mb-4">
-        <label class="text-muted fw-bold mb-2" style={{ display: 'block' }}>Date Filter</label>
-        <div class="flex items-center gap-2">
-          <input 
-            type="date" 
-            class="input-glass" 
-            style={{ flex: 1 }}
-            value={date} 
-            onChange={e => setDate((e.target as HTMLInputElement).value)} 
-          />
-          <button class="btn btn-primary" onClick={exportCSV}>
-            <Download size={20} />
+      {/* Main Content */}
+      <main class="app-content safe-bottom-padding">
+        {/* Date Filter & Search Row */}
+        <div class="glass-panel" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              Date:
+            </label>
+            <input 
+              type="date" 
+              class="input-glass" 
+              style={{ minHeight: '38px', padding: '6px 12px', fontSize: '14px', flex: 1 }}
+              value={date} 
+              onChange={e => setDate((e.target as HTMLInputElement).value)} 
+            />
+          </div>
+
+          <div class="search-bar-wrapper">
+            <Search size={16} class="search-icon" />
+            <input 
+              type="text" 
+              class="search-input"
+              placeholder="Search plate (e.g. MH12)..."
+              value={searchQuery}
+              onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
+              style={{ minHeight: '38px' }}
+            />
+          </div>
+        </div>
+
+        {/* Filter Tabs */}
+        <div class="filter-tabs">
+          <button 
+            class={`filter-tab-btn ${statusFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('all')}
+          >
+            All ({washes.length})
+          </button>
+          <button 
+            class={`filter-tab-btn ${statusFilter === 'paid' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('paid')}
+          >
+            Paid
+          </button>
+          <button 
+            class={`filter-tab-btn ${statusFilter === 'pending' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('pending')}
+          >
+            Pending
+          </button>
+          <button 
+            class={`filter-tab-btn ${statusFilter === 'voided' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('voided')}
+          >
+            Voided
           </button>
         </div>
-      </div>
 
-      {loading ? (
-        <div class="glass-panel text-center text-muted">Loading...</div>
-      ) : washes.length === 0 ? (
-        <div class="glass-panel text-center text-muted">No washes found for this date.</div>
-      ) : (
-        <div class="flex-col gap-2">
-          {washes.map(wash => (
-            <div key={wash.id} class="glass-panel flex-col gap-2" style={{ padding: '16px' }}>
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="fw-bold" style={{ fontSize: '1.2rem', letterSpacing: '1px', textDecoration: wash.amount === 0 ? 'line-through' : 'none' }}>
-                    {wash.plate}
+        {/* Wash Entries Cards / Mobile Table */}
+        {loading ? (
+          <div class="glass-panel text-center text-muted" style={{ padding: '36px 16px' }}>
+            Loading ledger entries...
+          </div>
+        ) : filteredWashes.length === 0 ? (
+          <div class="empty-table-state glass-panel">
+            <div class="empty-state-icon">
+              <Sparkles size={24} />
+            </div>
+            <div style={{ fontWeight: '700', color: 'var(--text-main)', fontSize: '14px' }}>
+              No washes match filter
+            </div>
+            <div style={{ fontSize: '12px' }}>
+              Select another date or clear search query.
+            </div>
+          </div>
+        ) : (
+          <div class="flex-col gap-2">
+            {filteredWashes.map(wash => {
+              const isVoided = wash.voided || wash.amount === 0;
+              return (
+                <div key={wash.id} class="glass-panel" style={{ padding: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+                    <div>
+                      {/* Realistic IND Plate Badge */}
+                      <div class="plate-badge" style={{ opacity: isVoided ? 0.6 : 1 }}>
+                        <div class="plate-badge-ind">
+                          <span>I</span>
+                          <span>N</span>
+                          <span>D</span>
+                        </div>
+                        <div class="plate-badge-number" style={{ textDecoration: isVoided ? 'line-through' : 'none' }}>
+                          {formatPlate(wash.plate)}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>
+                        {wash.vehicleType === 'Car' ? (
+                          <Car size={13} color="var(--primary)" />
+                        ) : (
+                          <Bike size={13} color="var(--accent-orange)" />
+                        )}
+                        <span>{wash.vehicleType}</span>
+                        <span>•</span>
+                        <span>{wash.serviceName}</span>
+                        <span>•</span>
+                        <span style={{ fontWeight: '600' }}>{wash.paymentMode}</span>
+                      </div>
+
+                      <div style={{ fontSize: '11px', color: 'var(--text-subtle)', marginTop: '2px' }}>
+                        {new Date(wash.deviceTime).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ 
+                        fontSize: '16px', 
+                        fontWeight: '800', 
+                        color: isVoided ? 'var(--text-muted)' : wash.status === 'paid' ? '#059669' : '#b45309',
+                        textDecoration: isVoided ? 'line-through' : 'none' 
+                      }}>
+                        ₹{wash.amount}
+                      </div>
+
+                      <div style={{ marginTop: '4px' }}>
+                        {isVoided ? (
+                          <span class="status-badge voided">Void</span>
+                        ) : wash.status === 'paid' ? (
+                          <span class="status-badge paid">
+                            <CheckCircle2 size={11} /> Paid
+                          </span>
+                        ) : (
+                          <span class="status-badge pending">
+                            <Clock size={11} /> Pending
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div class="text-muted flex items-center gap-2" style={{ fontSize: '0.875rem', marginTop: '4px' }}>
-                    {wash.vehicleType} • {wash.serviceName} • {wash.paymentMode}
-                  </div>
-                  <div class="text-muted" style={{ fontSize: '0.75rem', marginTop: '4px' }}>
-                    {new Date(wash.deviceTime).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })}
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="fw-bold text-success" style={{ textDecoration: wash.amount === 0 ? 'line-through' : 'none' }}>
-                    ₹{wash.amount}
-                  </div>
-                  <div class="flex items-center gap-2" style={{ justifyContent: 'flex-end', marginTop: '4px' }}>
-                    {wash.status === 'paid' ? (
-                      <span class="text-success flex items-center gap-1" style={{ fontSize: '0.875rem' }}><CheckCircle size={14} /> Paid</span>
-                    ) : wash.amount > 0 ? (
-                      <span class="text-danger flex items-center gap-1" style={{ fontSize: '0.875rem', color: 'var(--danger)' }}><Clock size={14} /> Pending</span>
-                    ) : (
-                      <span class="text-muted flex items-center gap-1" style={{ fontSize: '0.875rem' }}><X size={14} /> Void</span>
+
+                  {/* Quick Admin Actions Row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border-light)' }}>
+                    {wash.status === 'pending' && !isVoided && (
+                      <button 
+                        class="btn btn-primary" 
+                        style={{ flex: 1, minHeight: '34px', padding: '0 8px', fontSize: '12px' }} 
+                        onClick={() => handleUpdate(wash.id!, { status: 'paid' }, 'Marked Paid by Admin')}
+                      >
+                        <CheckCircle2 size={14} /> Mark Paid
+                      </button>
+                    )}
+                    
+                    <button 
+                      class="btn" 
+                      style={{ flex: 1, minHeight: '34px', padding: '0 8px', fontSize: '12px' }} 
+                      onClick={() => handleEdit(wash)}
+                    >
+                      <Edit2 size={13} /> Edit Plate
+                    </button>
+
+                    {!isVoided && (
+                      <button 
+                        class="btn" 
+                        style={{ minHeight: '34px', padding: '0 10px', fontSize: '12px', color: 'var(--danger)', borderColor: 'var(--danger-border)', background: 'var(--danger-bg)' }} 
+                        onClick={() => handleVoid(wash)}
+                        title="Void Wash"
+                      >
+                        <Ban size={13} /> Void
+                      </button>
                     )}
                   </div>
                 </div>
-              </div>
-              
-              {/* Admin Actions */}
-              <div class="flex items-center gap-2" style={{ marginTop: '8px', borderTop: '1px solid var(--glass-border)', paddingTop: '8px' }}>
-                {wash.status === 'pending' && wash.amount > 0 && (
-                  <button class="btn btn-primary" style={{ flex: 1, padding: '4px' }} onClick={() => handleUpdate(wash.id!, { status: 'paid' }, 'Marked Paid')}>
-                    Mark Paid
-                  </button>
-                )}
-                {wash.amount > 0 && (
-                  <button class="btn" style={{ flex: 1, padding: '4px', background: 'var(--glass-bg)', color: 'var(--danger)' }} onClick={() => handleVoid(wash)}>
-                    Void
-                  </button>
-                )}
-                <button class="btn" style={{ flex: 1, padding: '4px', background: 'var(--glass-bg)' }} onClick={() => handleEdit(wash)}>
-                  <Edit2 size={16} /> Edit
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </main>
     </div>
   );
 };
