@@ -1,17 +1,19 @@
 import { h } from 'preact';
-import { useState, useEffect, useMemo } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
-import { collection, getDocs, doc, setDoc, updateDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { db, createSecondaryApp } from '../firebase';
 import { getISTDateKey } from '../data/washes';
 import type { Wash } from '../data/types';
 import { 
   ArrowLeft, UserPlus, CheckCircle2, XCircle, 
-  Mail, Lock, User, ShieldCheck, Sparkles, 
-  ChevronDown, ChevronUp, Shield, Wrench, AlertCircle, RefreshCw
+  Mail, Lock, ShieldCheck, Sparkles, 
+  Shield, AlertCircle, RefreshCw, Trash2
 } from 'lucide-preact';
 import { getUserFriendlyError } from '../utils/errors';
+
+const MAX_WORKERS = 3;
 
 interface Worker {
   id: string;
@@ -33,6 +35,12 @@ export const Workers = () => {
   const [formSuccess, setFormSuccess] = useState('');
   const [statusError, setStatusError] = useState('');
   const [fetchError, setFetchError] = useState('');
+
+  // Delete worker dialog states
+  const [deleteTarget, setDeleteTarget] = useState<Worker | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [deleteSuccess, setDeleteSuccess] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
@@ -65,6 +73,12 @@ export const Workers = () => {
     e.preventDefault();
     setFormError('');
     setFormSuccess('');
+
+    // Enforce maximum 3 workers limit
+    if (workers.length >= MAX_WORKERS) {
+      setFormError(`Maximum limit of ${MAX_WORKERS} worker accounts reached. Please delete an existing worker before registering a new one.`);
+      return;
+    }
 
     if (!email || password.length < 6) {
       setFormError('Password must be at least 6 characters long.');
@@ -111,6 +125,25 @@ export const Workers = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await deleteDoc(doc(db, 'users', deleteTarget.id));
+      setDeleteSuccess(`Worker ${deleteTarget.email} deleted successfully.`);
+      setTimeout(() => setDeleteSuccess(''), 3000);
+      setDeleteTarget(null);
+      await fetchData();
+    } catch (err: any) {
+      console.error(err);
+      setDeleteError(getUserFriendlyError(err, 'Failed to delete worker account. Please try again.'));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const isAtMaxLimit = workers.length >= MAX_WORKERS;
   const activeCount = workers.filter(w => w.active).length;
   const totalWashesLogged = todayWashes.length;
 
@@ -128,14 +161,27 @@ export const Workers = () => {
           </button>
           <div>
             <div class="brand-title">Manage Workers</div>
-            <div class="brand-subtitle">{workers.length} registered attendants</div>
+            <div class="brand-subtitle">{workers.length}/{MAX_WORKERS} attendants registered</div>
           </div>
         </div>
 
         <button 
           class="btn btn-primary"
-          style={{ minHeight: '36px', padding: '0 12px', fontSize: '12px', borderRadius: 'var(--radius-sm)' }}
-          onClick={() => setShowAddForm(!showAddForm)}
+          style={{ 
+            minHeight: '36px', 
+            padding: '0 12px', 
+            fontSize: '12px', 
+            borderRadius: 'var(--radius-sm)',
+            opacity: isAtMaxLimit && !showAddForm ? 0.7 : 1
+          }}
+          onClick={() => {
+            if (isAtMaxLimit && !showAddForm) {
+              setStatusError(`Maximum limit of ${MAX_WORKERS} worker accounts reached. Delete an existing worker before adding a new one.`);
+              return;
+            }
+            setStatusError('');
+            setShowAddForm(!showAddForm);
+          }}
         >
           <UserPlus size={15} />
           <span>{showAddForm ? 'Close' : 'Add Worker'}</span>
@@ -147,8 +193,10 @@ export const Workers = () => {
         {/* Staff Metrics Strip */}
         <section class="metrics-strip">
           <div class="metric-card">
-            <span class="metric-label">Total Staff</span>
-            <span class="metric-value primary">{workers.length}</span>
+            <span class="metric-label">Staff Slots</span>
+            <span class={`metric-value ${isAtMaxLimit ? 'warning' : 'primary'}`}>
+              {workers.length} / {MAX_WORKERS}
+            </span>
           </div>
           <div class="metric-card">
             <span class="metric-label">Active Now</span>
@@ -159,6 +207,25 @@ export const Workers = () => {
             <span class="metric-value">{totalWashesLogged}</span>
           </div>
         </section>
+
+        {/* Max Limit Info Notice */}
+        {isAtMaxLimit && !showAddForm && (
+          <div style={{
+            background: 'var(--warning-bg)',
+            border: '1px solid var(--warning-border)',
+            color: '#92400e',
+            padding: '10px 14px',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '12px',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <AlertCircle size={16} style={{ flexShrink: 0, color: '#d97706' }} />
+            <span>Maximum limit of 3 worker accounts reached. To register a new worker, please delete an existing account below.</span>
+          </div>
+        )}
 
         {/* Fetch Error with Retry */}
         {fetchError && (
@@ -189,7 +256,25 @@ export const Workers = () => {
           </div>
         )}
 
-        {/* Status Error Alert if toggling active fails */}
+        {/* Delete Success Alert */}
+        {deleteSuccess && (
+          <div style={{
+            background: 'var(--success-bg)',
+            border: '1px solid var(--success-border)',
+            color: 'var(--success)',
+            padding: '12px 14px',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
+            <span>{deleteSuccess}</span>
+          </div>
+        )}
+
+        {/* Status Error Alert if toggling active fails or limit hit */}
         {statusError && (
           <div style={{
             background: 'var(--danger-bg)',
@@ -212,7 +297,7 @@ export const Workers = () => {
           <form class="glass-panel" onSubmit={handleCreate} style={{ padding: '16px', border: '2px solid var(--primary)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px' }}>
-                New Worker Registration
+                New Worker Registration ({workers.length}/{MAX_WORKERS})
               </div>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Staff Credentials</span>
             </div>
@@ -225,10 +310,10 @@ export const Workers = () => {
                 padding: '10px 12px',
                 borderRadius: 'var(--radius-md)',
                 fontSize: '12px',
+                marginBottom: '12px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                marginBottom: '12px'
+                gap: '8px'
               }}>
                 <AlertCircle size={15} style={{ flexShrink: 0 }} />
                 <span>{formError}</span>
@@ -243,10 +328,10 @@ export const Workers = () => {
                 padding: '10px 12px',
                 borderRadius: 'var(--radius-md)',
                 fontSize: '12px',
+                marginBottom: '12px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                marginBottom: '12px'
+                gap: '8px'
               }}>
                 <CheckCircle2 size={15} style={{ flexShrink: 0 }} />
                 <span>{formSuccess}</span>
@@ -263,7 +348,7 @@ export const Workers = () => {
                   <input 
                     type="email" 
                     class="input-glass" 
-                    placeholder="worker3@wash.ceat.in" 
+                    placeholder="worker@wash.ceat.in" 
                     value={email}
                     onChange={e => setEmail((e.target as HTMLInputElement).value)}
                     style={{ paddingLeft: '38px', minHeight: '46px', fontSize: '14px' }}
@@ -301,7 +386,7 @@ export const Workers = () => {
                 <button 
                   type="submit" 
                   class="btn btn-primary" 
-                  disabled={creating}
+                  disabled={creating || isAtMaxLimit}
                   style={{ minHeight: '46px', fontSize: '14px', borderRadius: 'var(--radius-md)' }}
                 >
                   {creating ? 'Registering...' : 'Create Worker'}
@@ -315,7 +400,7 @@ export const Workers = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', paddingLeft: '4px' }}>
             <div style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
-              Active Staff Roster
+              Active Staff Roster ({workers.length}/{MAX_WORKERS})
             </div>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>
               {activeCount} of {workers.length} active
@@ -328,7 +413,7 @@ export const Workers = () => {
             </div>
           ) : workers.length === 0 ? (
             <div class="glass-panel text-center text-muted" style={{ padding: '36px 16px' }}>
-              No worker accounts found. Tap "Add Worker" to register an attendant.
+              No worker accounts found. Tap "Add Worker" to register up to 3 attendants.
             </div>
           ) : (
             <div class="flex-col gap-2">
@@ -374,25 +459,50 @@ export const Workers = () => {
                         </div>
                       </div>
 
-                      <button 
-                        class="btn" 
-                        style={{ 
-                          minHeight: '34px', 
-                          padding: '0 12px', 
-                          fontSize: '12px',
-                          fontWeight: '700',
-                          color: w.active ? 'var(--danger)' : 'var(--success)',
-                          borderColor: w.active ? 'var(--danger-border)' : 'var(--success-border)',
-                          background: w.active ? 'var(--danger-bg)' : 'var(--success-bg)'
-                        }}
-                        onClick={() => toggleActive(w.id, w.active)}
-                      >
-                        {w.active ? (
-                          <><XCircle size={14} /> Disable</>
-                        ) : (
-                          <><CheckCircle2 size={14} /> Enable</>
-                        )}
-                      </button>
+                      {/* Actions: Enable/Disable and Delete */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button 
+                          class="btn" 
+                          style={{ 
+                            minHeight: '34px', 
+                            padding: '0 10px', 
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            color: w.active ? 'var(--danger)' : 'var(--success)',
+                            borderColor: w.active ? 'var(--danger-border)' : 'var(--success-border)',
+                            background: w.active ? 'var(--danger-bg)' : 'var(--success-bg)'
+                          }}
+                          onClick={() => toggleActive(w.id, w.active)}
+                          title={w.active ? 'Disable account' : 'Enable account'}
+                        >
+                          {w.active ? (
+                            <><XCircle size={14} /> Disable</>
+                          ) : (
+                            <><CheckCircle2 size={14} /> Enable</>
+                          )}
+                        </button>
+
+                        <button 
+                          class="btn" 
+                          style={{ 
+                            minHeight: '34px', 
+                            padding: '0 10px', 
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            color: 'var(--danger)',
+                            borderColor: 'var(--danger-border)',
+                            background: 'var(--danger-bg)'
+                          }}
+                          onClick={() => {
+                            setDeleteTarget(w);
+                            setDeleteError('');
+                          }}
+                          title="Delete Worker Account"
+                        >
+                          <Trash2 size={14} />
+                          <span>Delete</span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Today's Productivity Badge */}
@@ -423,13 +533,100 @@ export const Workers = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--primary)' }}>
             <Shield size={18} />
             <span style={{ fontWeight: '800', fontSize: '13px', color: 'var(--text-main)' }}>
-              Staff Roles & Privileges
+              Staff Roles & Quota
             </span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-            Attendants can scan license plates and log washes for their active shift. Only Administrator accounts can alter pricing, void entries, or manage the staff roster.
+            A maximum of 3 attendant accounts can be active simultaneously. Attendants can scan license plates and log washes for their active shift. Only Administrator accounts can manage pricing, void entries, or alter the staff roster.
           </div>
         </div>
+
+        {/* Modal: In-App Confirmation to Delete Worker */}
+        {deleteTarget && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            zIndex: 100
+          }}>
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              padding: '24px',
+              maxWidth: '380px',
+              width: '100%',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+              border: '1px solid var(--border)'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '16px',
+                background: 'var(--danger-bg)',
+                color: 'var(--danger)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '14px'
+              }}>
+                <Trash2 size={24} />
+              </div>
+
+              <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-main)' }}>
+                Delete Worker Account?
+              </h3>
+
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '16px' }}>
+                Are you sure you want to permanently delete <strong>{deleteTarget.email}</strong>? They will immediately lose access to the Wash Ledger app. (Past wash records logged by this attendant remain in the ledger).
+              </p>
+
+              {deleteError && (
+                <div style={{
+                  background: 'var(--danger-bg)',
+                  border: '1px solid var(--danger-border)',
+                  color: 'var(--danger)',
+                  padding: '8px 12px',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  marginBottom: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <AlertCircle size={15} style={{ flexShrink: 0 }} />
+                  <span>{deleteError}</span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  class="btn-secondary"
+                  style={{ flex: 1, minHeight: '42px', fontSize: '13px' }}
+                  onClick={() => {
+                    setDeleteTarget(null);
+                    setDeleteError('');
+                  }}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  class="btn-primary"
+                  style={{ flex: 1, minHeight: '42px', fontSize: '13px', background: 'var(--danger)', borderColor: 'var(--danger)' }}
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting...' : 'Yes, Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
