@@ -33,12 +33,12 @@ export const Login = () => {
         <img 
           src={loginHeroImg} 
           alt="CEAT Vehicle Wash & Care" 
-          style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
+          style={{ width: '100%', height: '280px', objectFit: 'cover', objectPosition: 'center 35%', display: 'block' }}
         />
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(to top, #ffffff 0%, rgba(15,23,42,0.2) 65%, rgba(15,23,42,0.65) 100%)',
+          background: 'linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.8) 12%, rgba(15,23,42,0.1) 50%, rgba(15,23,42,0.65) 100%)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
