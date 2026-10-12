@@ -28,17 +28,17 @@ export const Login = () => {
 
   return (
     <div class="app-shell" style={{ backgroundColor: '#ffffff', minHeight: '100dvh' }}>
-      {/* Top Hero Banner matching the user's reference mockup */}
-      <div style={{ position: 'relative', width: '100%', overflow: 'hidden', background: '#0f172a' }}>
+      {/* Top Hero Banner covering 40% of screen height */}
+      <div style={{ position: 'relative', width: '100%', height: '40dvh', minHeight: '280px', overflow: 'hidden', background: '#0f172a' }}>
         <img 
           src={loginHeroImg} 
           alt="CEAT Vehicle Wash & Care" 
-          style={{ width: '100%', height: '280px', objectFit: 'cover', objectPosition: 'center 35%', display: 'block' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', display: 'block' }}
         />
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.8) 12%, rgba(15,23,42,0.1) 50%, rgba(15,23,42,0.65) 100%)',
+          background: 'linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.75) 12%, rgba(15,23,42,0.1) 50%, rgba(15,23,42,0.65) 100%)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
