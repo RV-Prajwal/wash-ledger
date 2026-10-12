@@ -3,7 +3,7 @@ import { useState } from 'preact/hooks';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { route } from 'preact-router';
-import { LogIn, AlertCircle, Mail, Lock, ShieldCheck, UserCheck } from 'lucide-preact';
+import { LogIn, AlertCircle, Mail, Lock } from 'lucide-preact';
 import loginHeroImg from '../assets/login-hero.jpg';
 
 export const Login = () => {
@@ -23,16 +23,6 @@ export const Login = () => {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fillDemo = (role: 'worker' | 'admin') => {
-    if (role === 'worker') {
-      setEmail('worker1@wash.ceat.in');
-      setPassword('worker123');
-    } else {
-      setEmail('admin@wash.ceat.in');
-      setPassword('admin123');
     }
   };
 
@@ -202,33 +192,6 @@ export const Login = () => {
               <span>{loading ? 'Authenticating...' : 'Login / Sign In'}</span>
             </button>
           </form>
-
-          {/* Quick 1-Tap Demo Credentials */}
-          <div style={{ marginTop: '26px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '10px', fontWeight: '700', letterSpacing: '0.6px' }}>
-              QUICK DEMO ACCESS
-            </div>
-            <div class="grid-2">
-              <button 
-                type="button" 
-                class="secondary-action-btn"
-                onClick={() => fillDemo('worker')}
-                style={{ fontSize: '12px', minHeight: '42px', gap: '6px' }}
-              >
-                <UserCheck size={14} color="var(--primary)" />
-                <span>Worker Login</span>
-              </button>
-              <button 
-                type="button" 
-                class="secondary-action-btn"
-                onClick={() => fillDemo('admin')}
-                style={{ fontSize: '12px', minHeight: '42px', gap: '6px' }}
-              >
-                <ShieldCheck size={14} color="#7c3aed" />
-                <span>Admin Login</span>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Footer legal disclaimer */}
