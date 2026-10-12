@@ -33,29 +33,29 @@ export const Login = () => {
         <img 
           src={loginHeroImg} 
           alt="CEAT Vehicle Wash & Care" 
-          style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
+          style={{ width: '100%', height: '340px', objectFit: 'cover', objectPosition: 'center 40%', display: 'block' }}
         />
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(to top, #ffffff 0%, rgba(15,23,42,0.2) 65%, rgba(15,23,42,0.65) 100%)',
+          background: 'linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.02) 45%, rgba(15,23,42,0.2) 75%, rgba(15,23,42,0.65) 100%)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          padding: 'max(16px, var(--safe-top)) 16px 16px 16px'
+          padding: 'max(20px, var(--safe-top)) 16px 16px 16px'
         }}>
           {/* Top Tag Badge */}
           <div style={{
             alignSelf: 'center',
-            background: 'rgba(15, 23, 42, 0.85)',
+            background: 'rgba(15, 23, 42, 0.88)',
             backdropFilter: 'blur(10px)',
             color: '#ffffff',
-            padding: '6px 18px',
+            padding: '7px 20px',
             borderRadius: '24px',
             fontSize: '12px',
             fontWeight: '800',
             letterSpacing: '0.5px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
             display: 'flex',
             alignItems: 'center',
             gap: '8px'
