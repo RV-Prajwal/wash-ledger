@@ -11,11 +11,13 @@ import { ScanScreen } from './worker/Scan';
 import { DevTest } from './worker/DevTest';
 import { TestHarness } from './worker/TestHarness';
 import { Workers } from './admin/Workers';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 
 export function App() {
   return (
-    <Router>
+    <ErrorBoundary>
+      <Router>
       <Route path="/login" component={Login} />
       <Route path="/dev-test" component={DevTest} />
       <Route path="/test-harness" component={TestHarness} />
@@ -58,7 +60,8 @@ export function App() {
           <Workers />
         </AuthGuard>
       )} />
-    </Router>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

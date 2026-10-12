@@ -75,7 +75,11 @@ export const checkRecentDuplicate = async (plate: string, workerId: string, minu
 };
 
 // Subscribe to latest washes for a worker (Home screen)
-export const subscribeToWorkerWashes = (workerId: string, callback: (washes: Wash[]) => void) => {
+export const subscribeToWorkerWashes = (
+  workerId: string, 
+  callback: (washes: Wash[]) => void,
+  onError?: (err: Error) => void
+) => {
   const dateKey = getISTDateKey();
   const q = query(
     collection(db, 'washes'),
@@ -83,19 +87,26 @@ export const subscribeToWorkerWashes = (workerId: string, callback: (washes: Was
     where('dateKey', '==', dateKey)
   );
   
-  return onSnapshot(q, (snapshot) => {
-    let washes = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      hasPendingWrites: doc.metadata.hasPendingWrites
-    } as Wash));
-    
-    // Sort descending by deviceTime client-side and limit to 50
-    washes.sort((a, b) => new Date(b.deviceTime).getTime() - new Date(a.deviceTime).getTime());
-    washes = washes.slice(0, 50);
-    
-    callback(washes);
-  });
+  return onSnapshot(
+    q, 
+    (snapshot) => {
+      let washes = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        hasPendingWrites: doc.metadata.hasPendingWrites
+      } as Wash));
+      
+      // Sort descending by deviceTime client-side and limit to 50
+      washes.sort((a, b) => new Date(b.deviceTime).getTime() - new Date(a.deviceTime).getTime());
+      washes = washes.slice(0, 50);
+      
+      callback(washes);
+    },
+    (err) => {
+      console.warn("Firestore washes subscription notice:", err);
+      if (onError) onError(err);
+    }
+  );
 };
 
 // Admin function to update a wash (e.g., mark paid, void, or correct plate/amount)

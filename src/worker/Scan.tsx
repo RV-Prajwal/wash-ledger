@@ -5,6 +5,7 @@ import { startCamera } from '../scan/camera';
 import type { CameraControls } from '../scan/camera';
 import { pipeline } from '../scan/index';
 import { Flashlight, X, Keyboard } from 'lucide-preact';
+import { getUserFriendlyError } from '../utils/errors';
 
 export const ScanScreen = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -51,7 +52,7 @@ export const ScanScreen = () => {
         }
       } catch (err: any) {
         console.error("Camera/Pipeline init failed", err);
-        setInitError(err.message || 'Failed to initialize AI models.');
+        setInitError(getUserFriendlyError(err, 'Unable to start camera scanner. Please enter the plate manually.'));
         setInitializing(false);
         setShowFallback(true);
       }

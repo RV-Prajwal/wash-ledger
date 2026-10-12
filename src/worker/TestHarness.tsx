@@ -1,6 +1,7 @@
 import { h } from 'preact';
 import { useState, useRef } from 'preact/hooks';
 import { pipeline, TWO_LINE_ASPECT_RATIO_THRESHOLD } from '../scan/index';
+import { getUserFriendlyError } from '../utils/errors';
 
 interface TestResult {
   filename: string;
@@ -16,6 +17,7 @@ export const TestHarness = () => {
   const [results, setResults] = useState<TestResult[]>([]);
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
   
   const imagesRef = useRef<HTMLInputElement>(null);
   const csvRef = useRef<HTMLInputElement>(null);
@@ -46,8 +48,9 @@ export const TestHarness = () => {
   };
 
   const runTests = async () => {
+    setErrorMessage('');
     if (!imagesRef.current?.files?.length || !csvRef.current?.files?.length) {
-      alert('Please select images and a CSV file.');
+      setErrorMessage('Please select both test images and a ground-truth CSV file.');
       return;
     }
 
@@ -55,27 +58,28 @@ export const TestHarness = () => {
     setResults([]);
     setProgress(0);
 
-    const imageFiles = Array.from(imagesRef.current.files);
-    const truthMap = await parseCsv(csvRef.current.files[0]);
+    try {
+      const imageFiles = Array.from(imagesRef.current.files);
+      const truthMap = await parseCsv(csvRef.current.files[0]);
 
-    await pipeline.init();
-    
-    const newResults: TestResult[] = [];
+      await pipeline.init();
+      
+      const newResults: TestResult[] = [];
 
-    for (let i = 0; i < imageFiles.length; i++) {
-      const file = imageFiles[i];
-      const expected = truthMap[file.name];
-      if (!expected) continue;
+      for (let i = 0; i < imageFiles.length; i++) {
+        const file = imageFiles[i];
+        const expected = truthMap[file.name];
+        if (!expected) continue;
 
-      pipeline.reset(); // reset voting state for each image
+        pipeline.reset(); // reset voting state for each image
 
-      // Load image to canvas
-      const imgUrl = URL.createObjectURL(file);
-      const img = new Image();
-      await new Promise((resolve) => {
-        img.onload = resolve;
-        img.src = imgUrl;
-      });
+        // Load image to canvas
+        const imgUrl = URL.createObjectURL(file);
+        const img = new Image();
+        await new Promise((resolve) => {
+          img.onload = resolve;
+          img.src = imgUrl;
+        });
       
       const canvas = document.createElement('canvas');
       canvas.width = img.width;
@@ -123,9 +127,12 @@ export const TestHarness = () => {
       setProgress(((i + 1) / imageFiles.length) * 100);
       setResults([...newResults]); // trigger render
     }
-
+  } catch (err: any) {
+    setErrorMessage(getUserFriendlyError(err, 'Failed to complete benchmark tests.'));
+  } finally {
     setRunning(false);
-  };
+  }
+};
 
   const singleLine = results.filter(r => !r.isTwoLine);
   const twoLine = results.filter(r => r.isTwoLine);
@@ -150,6 +157,20 @@ export const TestHarness = () => {
   return (
     <div style={{ padding: '20px', backgroundColor: '#f0f0f0', minHeight: '100vh', color: '#333' }}>
       <h1>Model Test Harness</h1>
+
+      {errorMessage && (
+        <div style={{
+          background: '#fef2f2',
+          border: '1px solid #fecaca',
+          color: '#ef4444',
+          padding: '10px 14px',
+          borderRadius: '8px',
+          margin: '14px 0',
+          fontWeight: '500'
+        }}>
+          {errorMessage}
+        </div>
+      )}
       
       <div style={{ marginBottom: '20px' }}>
         <div>

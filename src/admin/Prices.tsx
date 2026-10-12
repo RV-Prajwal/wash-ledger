@@ -7,6 +7,7 @@ import {
   ArrowLeft, Save, Edit2, Car, Bike, Check, 
   Tag, Sparkles, CheckCircle2, AlertCircle, Info 
 } from 'lucide-preact';
+import { getUserFriendlyError } from '../utils/errors';
 
 export const Prices = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -14,12 +15,20 @@ export const Prices = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'all' | 'Bike' | 'Car'>('all');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const loadServices = async () => {
     setLoading(true);
-    const data = await getServices(false);
-    setServices(data);
-    setLoading(false);
+    setErrorMessage('');
+    try {
+      const data = await getServices(false);
+      setServices(data);
+    } catch (err) {
+      setErrorMessage(getUserFriendlyError(err, 'Unable to load service packages. Please check your network connection.'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -32,12 +41,22 @@ export const Prices = () => {
   };
 
   const handleSave = async (id: string) => {
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (isNaN(editPrice) || editPrice <= 0) {
+      setErrorMessage('Please enter a valid price greater than ₹0.');
+      return;
+    }
+
     try {
-      await updateService(id, { price: editPrice });
+      await updateService(id, { price: Number(editPrice) });
       setEditingId(null);
-      loadServices();
+      await loadServices();
+      setSuccessMessage('Price updated successfully.');
+      setTimeout(() => setSuccessMessage(''), 2500);
     } catch (err) {
-      alert('Failed to update price');
+      setErrorMessage(getUserFriendlyError(err, 'Failed to update package price. Please try again.'));
     }
   };
 
@@ -70,6 +89,39 @@ export const Prices = () => {
 
       {/* Main Content */}
       <main class="app-content safe-bottom-padding">
+        {errorMessage && (
+          <div style={{
+            background: 'var(--danger-bg)',
+            border: '1px solid var(--danger-border)',
+            color: 'var(--danger)',
+            padding: '12px 14px',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <AlertCircle size={16} style={{ flexShrink: 0 }} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {successMessage && (
+          <div style={{
+            background: 'var(--success-bg)',
+            border: '1px solid var(--success-border)',
+            color: 'var(--success)',
+            padding: '12px 14px',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
+            <span>{successMessage}</span>
+          </div>
+        )}
         {/* Pricing Metrics Strip */}
         <section class="metrics-strip">
           <div class="metric-card">

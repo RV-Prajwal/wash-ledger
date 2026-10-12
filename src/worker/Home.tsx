@@ -20,6 +20,7 @@ export const Home = () => {
   const [todayRevenue, setTodayRevenue] = useState(0);
   const [activeFilter, setActiveFilter] = useState<'all' | 'today' | 'pending' | 'car' | 'bike'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [syncNotice, setSyncNotice] = useState('');
 
   const todayKey = getISTDateKey();
 
@@ -27,15 +28,35 @@ export const Home = () => {
     if (!user) return;
     
     // Subscribe to latest washes for this worker
-    const unsubscribe = subscribeToWorkerWashes(user.uid, (data) => {
-      setWashes(data);
-      getDailyStats().then(stats => {
-        setTodayCount(stats?.count || 0);
-        setTodayRevenue(stats?.revenue || 0);
-      });
-    });
+    const unsubscribe = subscribeToWorkerWashes(
+      user.uid, 
+      (data) => {
+        setWashes(data);
+        getDailyStats()
+          .then(stats => {
+            setTodayCount(stats?.count || 0);
+            setTodayRevenue(stats?.revenue || 0);
+          })
+          .catch(() => {
+            // Keep existing count and revenue silently if stats doc is temporarily unavailable
+          });
+      },
+      () => {
+        setSyncNotice('Working in offline mode. Wash entries will sync automatically once reconnected.');
+      }
+    );
 
-    return () => unsubscribe();
+    const handleOnline = () => setSyncNotice('');
+    const handleOffline = () => setSyncNotice('Device is offline. Wash entries will sync automatically once reconnected.');
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, [user]);
 
   const handleLogout = async () => {
@@ -130,6 +151,31 @@ export const Home = () => {
 
       {/* Main Content Area */}
       <main class="app-content">
+        {syncNotice && (
+          <div style={{
+            background: '#fffbeb',
+            border: '1px solid #fde68a',
+            color: '#92400e',
+            padding: '10px 14px',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '12px',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <WifiOff size={18} style={{ flexShrink: 0, color: '#d97706' }} />
+            <span style={{ flex: 1, lineHeight: '1.4' }}>{syncNotice}</span>
+            <button 
+              onClick={() => setSyncNotice('')} 
+              style={{ background: 'none', border: 'none', color: '#92400e', cursor: 'pointer', padding: '4px', display: 'flex' }}
+              title="Dismiss"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
         {/* Admin Portal Quick Switch Banner */}
         {role === 'admin' && (
           <div 

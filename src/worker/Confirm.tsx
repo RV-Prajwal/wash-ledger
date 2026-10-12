@@ -5,7 +5,8 @@ import { getServices } from '../data/services';
 import { saveWash, checkRecentDuplicate } from '../data/washes';
 import type { Service, Wash, PaymentMode, WashStatus } from '../data/types';
 import { useAuth } from '../auth/AuthGuard';
-import { ArrowLeft, Save, AlertTriangle, Car, Bike, Check, Clock, IndianRupee } from 'lucide-preact';
+import { ArrowLeft, Save, AlertTriangle, AlertCircle, Car, Bike, Check, Clock, IndianRupee } from 'lucide-preact';
+import { getUserFriendlyError } from '../utils/errors';
 
 export const Confirm = () => {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ export const Confirm = () => {
   
   const [loading, setLoading] = useState(false);
   const [warning, setWarning] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [lowConfidence, setLowConfidence] = useState(false);
   
   useEffect(() => {
@@ -64,23 +66,28 @@ export const Confirm = () => {
     
     const formattedPlate = validatePlate(plate);
     if (formattedPlate.length < 4) {
-      alert('Please enter a valid license plate number.');
+      setErrorMessage('Please enter a valid license plate number (minimum 4 characters).');
       return;
     }
 
     setLoading(true);
+    setErrorMessage('');
     
-    if (!warning || lowConfidence) {
-      const isDuplicate = await checkRecentDuplicate(formattedPlate, user.uid);
-      if (isDuplicate) {
-        setWarning('This plate was recorded within the last 15 minutes. Tap "Save Wash" again if you wish to record another wash.');
-        setLowConfidence(false);
-        setLoading(false);
-        return;
-      }
-    }
-
     try {
+      if (!warning || lowConfidence) {
+        try {
+          const isDuplicate = await checkRecentDuplicate(formattedPlate, user.uid);
+          if (isDuplicate) {
+            setWarning('This plate was recorded within the last 15 minutes. Tap "Save Wash" again if you wish to record another wash.');
+            setLowConfidence(false);
+            setLoading(false);
+            return;
+          }
+        } catch (dupErr) {
+          console.warn('Duplicate check skipped due to offline mode:', dupErr);
+        }
+      }
+
       const service = services.find(s => s.id === selectedServiceId);
       if (!service) throw new Error('No service selected');
 
@@ -97,7 +104,7 @@ export const Confirm = () => {
       if ('vibrate' in navigator) navigator.vibrate(200);
       route('/', true);
     } catch (err: any) {
-      alert('Error saving wash: ' + err.message);
+      setErrorMessage(getUserFriendlyError(err, 'Failed to save wash entry. Please try again.'));
       setLoading(false);
     }
   };
@@ -123,6 +130,23 @@ export const Confirm = () => {
 
       {/* Main Content */}
       <main class="app-content safe-bottom-padding">
+        {errorMessage && (
+          <div style={{
+            background: 'var(--danger-bg)',
+            border: '1px solid var(--danger-border)',
+            color: 'var(--danger)',
+            padding: '12px 14px',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <AlertCircle size={20} style={{ flexShrink: 0 }} />
+            <div>{errorMessage}</div>
+          </div>
+        )}
+
         {warning && (
           <div style={{
             background: 'var(--warning-bg)',

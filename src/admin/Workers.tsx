@@ -9,8 +9,9 @@ import type { Wash } from '../data/types';
 import { 
   ArrowLeft, UserPlus, CheckCircle2, XCircle, 
   Mail, Lock, User, ShieldCheck, Sparkles, 
-  ChevronDown, ChevronUp, Shield, Wrench
+  ChevronDown, ChevronUp, Shield, Wrench, AlertCircle, RefreshCw
 } from 'lucide-preact';
+import { getUserFriendlyError } from '../utils/errors';
 
 interface Worker {
   id: string;
@@ -28,9 +29,14 @@ export const Workers = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [creating, setCreating] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
+  const [statusError, setStatusError] = useState('');
+  const [fetchError, setFetchError] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
+    setFetchError('');
     try {
       // 1. Fetch worker user accounts
       const userSnap = await getDocs(collection(db, 'users'));
@@ -45,6 +51,7 @@ export const Workers = () => {
       setTodayWashes(washSnap.docs.map(d => d.data() as Wash));
     } catch (err) {
       console.error(err);
+      setFetchError(getUserFriendlyError(err, 'Unable to load attendant accounts. Please check your connection.'));
     } finally {
       setLoading(false);
     }
@@ -56,8 +63,11 @@ export const Workers = () => {
 
   const handleCreate = async (e: Event) => {
     e.preventDefault();
+    setFormError('');
+    setFormSuccess('');
+
     if (!email || password.length < 6) {
-      alert('Password must be at least 6 characters.');
+      setFormError('Password must be at least 6 characters long.');
       return;
     }
     
@@ -76,24 +86,28 @@ export const Workers = () => {
       
       setEmail('');
       setPassword('');
-      setShowAddForm(false);
+      setFormSuccess('Worker account created successfully!');
       await fetchData();
-      alert('Worker account created successfully!');
+      setTimeout(() => {
+        setShowAddForm(false);
+        setFormSuccess('');
+      }, 1500);
     } catch (err: any) {
       console.error(err);
-      alert(err.message);
+      setFormError(getUserFriendlyError(err, 'Failed to create worker account. Please verify credentials.'));
     } finally {
       setCreating(false);
     }
   };
 
   const toggleActive = async (id: string, currentStatus: boolean) => {
+    setStatusError('');
     try {
       await updateDoc(doc(db, 'users', id), { active: !currentStatus });
       await fetchData();
     } catch (err) {
       console.error(err);
-      alert('Failed to update status.');
+      setStatusError(getUserFriendlyError(err, 'Failed to update attendant active status.'));
     }
   };
 
@@ -146,6 +160,53 @@ export const Workers = () => {
           </div>
         </section>
 
+        {/* Fetch Error with Retry */}
+        {fetchError && (
+          <div style={{
+            background: 'var(--danger-bg)',
+            border: '1px solid var(--danger-border)',
+            color: 'var(--danger)',
+            padding: '12px 16px',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertCircle size={18} style={{ flexShrink: 0 }} />
+              <span>{fetchError}</span>
+            </div>
+            <button 
+              class="btn-secondary" 
+              onClick={fetchData}
+              style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <RefreshCw size={14} />
+              <span>Retry</span>
+            </button>
+          </div>
+        )}
+
+        {/* Status Error Alert if toggling active fails */}
+        {statusError && (
+          <div style={{
+            background: 'var(--danger-bg)',
+            border: '1px solid var(--danger-border)',
+            color: 'var(--danger)',
+            padding: '12px 14px',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <AlertCircle size={16} style={{ flexShrink: 0 }} />
+            <span>{statusError}</span>
+          </div>
+        )}
+
         {/* Add New Worker Expandable Card */}
         {showAddForm && (
           <form class="glass-panel" onSubmit={handleCreate} style={{ padding: '16px', border: '2px solid var(--primary)' }}>
@@ -155,6 +216,42 @@ export const Workers = () => {
               </div>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Staff Credentials</span>
             </div>
+
+            {formError && (
+              <div style={{
+                background: 'var(--danger-bg)',
+                border: '1px solid var(--danger-border)',
+                color: 'var(--danger)',
+                padding: '10px 12px',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '12px'
+              }}>
+                <AlertCircle size={15} style={{ flexShrink: 0 }} />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            {formSuccess && (
+              <div style={{
+                background: 'var(--success-bg)',
+                border: '1px solid var(--success-border)',
+                color: 'var(--success)',
+                padding: '10px 12px',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '12px'
+              }}>
+                <CheckCircle2 size={15} style={{ flexShrink: 0 }} />
+                <span>{formSuccess}</span>
+              </div>
+            )}
             
             <div class="flex-col gap-3">
               <div>

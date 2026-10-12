@@ -5,6 +5,7 @@ import { auth } from '../firebase';
 import { route } from 'preact-router';
 import { LogIn, AlertCircle, Mail, Lock } from 'lucide-preact';
 import loginHeroImg from '../assets/login-hero.jpg';
+import { getUserFriendlyError } from '../utils/errors';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ export const Login = () => {
       await signInWithEmailAndPassword(auth, email, password);
       route('/', true);
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      setError(getUserFriendlyError(err, 'Login failed. Please verify your credentials.'));
     } finally {
       setLoading(false);
     }

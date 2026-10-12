@@ -4,6 +4,7 @@ import { route } from 'preact-router';
 import { 
   getPeriodStats, stepDateForPeriod, isPeriodCurrentOrFuture 
 } from '../data/stats';
+import { getUserFriendlyError } from '../utils/errors';
 import type { DailyStats, StatsPeriod, PeriodStatsResult, Wash } from '../data/types';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -21,6 +22,7 @@ export const Dashboard = () => {
   const [statsData, setStatsData] = useState<PeriodStatsResult | null>(null);
   const [todayWashes, setTodayWashes] = useState<Wash[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   // Helper to get date string YYYY-MM-DD in IST
   const getISTDateKey = (d: Date) => {
@@ -34,6 +36,7 @@ export const Dashboard = () => {
 
   const loadData = async () => {
     setLoading(true);
+    setLoadError('');
     try {
       // 1. Fetch period statistics (includes fallback to washes collection for breakdowns)
       const res = await getPeriodStats(period, date);
@@ -54,6 +57,7 @@ export const Dashboard = () => {
       }
     } catch (err) {
       console.error('Error fetching admin dashboard data:', err);
+      setLoadError(getUserFriendlyError(err, 'Unable to load operations data. Please check your connection.'));
     } finally {
       setLoading(false);
     }
@@ -317,6 +321,31 @@ export const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {loadError && (
+          <div class="glass-panel" style={{
+            background: 'var(--danger-bg)',
+            border: '1px solid var(--danger-border)',
+            color: 'var(--danger)',
+            padding: '12px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertCircle size={18} style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: '13px' }}>{loadError}</span>
+            </div>
+            <button 
+              class="btn btn-primary" 
+              style={{ minHeight: '32px', padding: '0 10px', fontSize: '11px', whiteSpace: 'nowrap' }} 
+              onClick={loadData}
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <div class="glass-panel text-center text-muted" style={{ padding: '36px 16px' }}>
