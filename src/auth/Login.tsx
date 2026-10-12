@@ -3,7 +3,7 @@ import { useState } from 'preact/hooks';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { route } from 'preact-router';
-import { LogIn, AlertCircle, Mail, Lock, ShieldCheck, UserCheck } from 'lucide-preact';
+import { LogIn, AlertCircle, Mail, Lock, Zap, Wifi, HelpCircle } from 'lucide-preact';
 import loginHeroImg from '../assets/login-hero.jpg';
 
 export const Login = () => {
@@ -23,16 +23,6 @@ export const Login = () => {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fillDemo = (role: 'worker' | 'admin') => {
-    if (role === 'worker') {
-      setEmail('worker1@wash.ceat.in');
-      setPassword('worker123');
-    } else {
-      setEmail('admin@wash.ceat.in');
-      setPassword('admin123');
     }
   };
 
@@ -79,7 +69,7 @@ export const Login = () => {
         </div>
       </div>
 
-      {/* Main Login Form Container - comfortably spaced down for thumb reach */}
+      {/* Main Login Form Container */}
       <div style={{ 
         flex: 1, 
         padding: '20px 22px calc(24px + var(--safe-bottom)) 22px', 
@@ -135,7 +125,7 @@ export const Login = () => {
             </div>
           )}
 
-          {/* Form with lower positioning and generous touch spacing */}
+          {/* Form */}
           <form onSubmit={handleLogin} class="flex-col" style={{ gap: '16px', marginTop: '6px' }}>
             {/* Email Field with Icon */}
             <div>
@@ -147,7 +137,7 @@ export const Login = () => {
                 <input 
                   type="email" 
                   class="input-glass" 
-                  placeholder="worker1@wash.ceat.in"
+                  placeholder="name@wash.ceat.in"
                   value={email}
                   onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
                   style={{ paddingLeft: '46px', minHeight: '52px', fontSize: '15px' }}
@@ -203,30 +193,65 @@ export const Login = () => {
             </button>
           </form>
 
-          {/* Quick 1-Tap Demo Credentials */}
-          <div style={{ marginTop: '26px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '10px', fontWeight: '700', letterSpacing: '0.6px' }}>
-              QUICK DEMO ACCESS
+          {/* Informative Highlights & Center Support Section */}
+          <div style={{ marginTop: '28px', paddingTop: '18px', borderTop: '1px solid var(--border)' }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr', 
+              gap: '10px',
+              marginBottom: '14px' 
+            }}>
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)' }}>
+                  <Zap size={16} />
+                  <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-main)' }}>AI Scanning</span>
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.3' }}>
+                  Instant plate recognition via on-device camera
+                </div>
+              </div>
+
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--success)' }}>
+                  <Wifi size={16} />
+                  <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-main)' }}>Offline Ready</span>
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.3' }}>
+                  Log washes offline; auto-syncs when reconnected
+                </div>
+              </div>
             </div>
-            <div class="grid-2">
-              <button 
-                type="button" 
-                class="secondary-action-btn"
-                onClick={() => fillDemo('worker')}
-                style={{ fontSize: '12px', minHeight: '42px', gap: '6px' }}
-              >
-                <UserCheck size={14} color="var(--primary)" />
-                <span>Worker Login</span>
-              </button>
-              <button 
-                type="button" 
-                class="secondary-action-btn"
-                onClick={() => fillDemo('admin')}
-                style={{ fontSize: '12px', minHeight: '42px', gap: '6px' }}
-              >
-                <ShieldCheck size={14} color="#7c3aed" />
-                <span>Admin Login</span>
-              </button>
+
+            {/* Assistance note */}
+            <div style={{
+              background: 'var(--primary-light)',
+              border: '1px solid rgba(2, 86, 208, 0.15)',
+              borderRadius: 'var(--radius-md)',
+              padding: '12px 14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              <HelpCircle size={18} color="var(--primary)" style={{ flexShrink: 0 }} />
+              <div style={{ fontSize: '12px', color: '#0f172a', lineHeight: '1.35' }}>
+                <span style={{ fontWeight: '700' }}>Center Staff Access:</span> For account credentials or password assistance, please contact your Center Supervisor.
+              </div>
             </div>
           </div>
         </div>
