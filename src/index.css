@@ -385,40 +385,74 @@ html, body {
   border-radius: 12px;
 }
 
-/* Filter tabs */
-.filter-tabs {
+/* Filter tabs & Tab Pill containers */
+.filter-tabs,
+.tabs-container {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding: 4px 2px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 
-.filter-tabs::-webkit-scrollbar {
+.filter-tabs::-webkit-scrollbar,
+.tabs-container::-webkit-scrollbar {
   display: none;
 }
 
-.filter-tab-btn {
-  padding: 6px 14px;
+.filter-tab-btn,
+.tab-pill {
+  padding: 8px 16px;
   border-radius: 20px;
   border: 1px solid var(--border);
   background: var(--surface);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-muted);
   cursor: pointer;
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   transition: all 0.15s ease;
+  box-shadow: var(--shadow-xs);
+  outline: none;
 }
 
-.filter-tab-btn.active {
-  background: var(--text-main);
-  border-color: var(--text-main);
+.filter-tab-btn:hover,
+.tab-pill:hover {
+  background: var(--bg-main);
+  color: var(--text-main);
+  border-color: var(--border-dark);
+}
+
+.filter-tab-btn.active,
+.tab-pill.active {
+  background: var(--primary);
+  border-color: var(--primary);
   color: #ffffff;
+  box-shadow: 0 2px 8px rgba(2, 86, 208, 0.25);
+}
+
+/* Standard Input Field */
+.input-field {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.input-field:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(2, 86, 208, 0.12);
 }
 
 /* Segmented Period Switcher (Day, Month, Quarter, Year) */
