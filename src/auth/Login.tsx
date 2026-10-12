@@ -38,35 +38,9 @@ export const Login = () => {
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.75) 12%, rgba(15,23,42,0.1) 50%, rgba(15,23,42,0.65) 100%)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: 'max(16px, var(--safe-top)) 16px 16px 16px'
-        }}>
-          {/* Top Tag Badge */}
-          <div style={{
-            alignSelf: 'center',
-            background: 'rgba(15, 23, 42, 0.85)',
-            backdropFilter: 'blur(10px)',
-            color: '#ffffff',
-            padding: '6px 18px',
-            borderRadius: '24px',
-            fontSize: '12px',
-            fontWeight: '800',
-            letterSpacing: '0.5px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span>⏱ At Your Time</span>
-            <span>•</span>
-            <span>At Your Place 📍</span>
-          </div>
-
-          <div></div>
-        </div>
+          background: 'linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.75) 12%, rgba(15,23,42,0.05) 50%, rgba(15,23,42,0.25) 100%)',
+          pointerEvents: 'none'
+        }} />
       </div>
 
       {/* Main Login Form Container - comfortably spaced down for thumb reach */}
