@@ -51,3 +51,39 @@ export interface DailyStats {
     Card: number;
   };
 }
+
+export type StatsPeriod = 'day' | 'month' | 'quarter' | 'year';
+
+export interface DailyPoint {
+  dateKey: string;
+  formattedDate: string;
+  count: number;
+  revenue: number;
+  pendingAmount: number;
+  bikeCount: number;
+  carCount: number;
+}
+
+export interface PeriodStatsResult {
+  period: StatsPeriod;
+  startDateKey: string;
+  endDateKey: string;
+  label: string;
+  subLabel: string;
+  count: number;
+  revenue: number;
+  pendingAmount: number;
+  breakdownByVehicle: {
+    Bike: number;
+    Car: number;
+  };
+  breakdownByMode: {
+    Cash: number;
+    UPI: number;
+    Card: number;
+  };
+  activeDaysCount: number;
+  avgDailyRevenue: number;
+  avgDailyWashes: number;
+  dailyPoints: DailyPoint[];
+}

@@ -32,6 +32,7 @@ export const saveWash = async (washData: Omit<Wash, 'id' | 'washedAt' | 'deviceT
   const statsRef = doc(db, 'dailyStats', dateKey);
   
   const statUpdate: any = {
+    dateKey,
     count: increment(1),
     [`breakdownByVehicle.${washData.vehicleType}`]: increment(1),
     [`breakdownByMode.${washData.paymentMode}`]: increment(1)

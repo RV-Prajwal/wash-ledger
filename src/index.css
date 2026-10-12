@@ -421,6 +421,53 @@ html, body {
   color: #ffffff;
 }
 
+/* Segmented Period Switcher (Day, Month, Quarter, Year) */
+.period-segmented-control {
+  display: flex;
+  background: var(--border-light);
+  padding: 3px;
+  border-radius: var(--radius-md);
+  gap: 3px;
+  width: 100%;
+}
+
+.period-segment-btn {
+  flex: 1;
+  padding: 8px 4px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.period-segment-btn:active {
+  transform: scale(0.97);
+}
+
+.period-segment-btn.active {
+  background: #ffffff;
+  color: var(--primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.period-day-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.period-day-row:hover {
+  background: var(--primary-light) !important;
+}
+
 /* Search input */
 .search-bar-wrapper {
   position: relative;
@@ -711,8 +758,32 @@ html, body {
 .text-right { text-align: right; }
 .text-muted { color: var(--text-muted); }
 .fw-bold { font-weight: 700; }
+.gap-1 { gap: 4px; }
 .gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
 .gap-4 { gap: 16px; }
+.gap-5 { gap: 20px; }
+.gap-6 { gap: 24px; }
+
+/* Dashboard layout pacing */
+.dashboard-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.metric-card-secondary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 72px;
+}
 .mt-4 { margin-top: 16px; }
 .mb-4 { margin-bottom: 16px; }
 
