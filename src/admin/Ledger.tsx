@@ -105,6 +105,9 @@ export const Ledger = () => {
     return clean;
   };
 
+  const totalRevenue = washes.reduce((sum, w) => w.status === 'paid' && !w.voided ? sum + w.amount : sum, 0);
+  const totalPending = washes.reduce((sum, w) => w.status === 'pending' && !w.voided ? sum + w.amount : sum, 0);
+
   return (
     <div class="app-shell">
       {/* Mobile Top Header */}
@@ -135,6 +138,22 @@ export const Ledger = () => {
 
       {/* Main Content */}
       <main class="app-content safe-bottom-padding">
+        {/* Ledger Date Financial Summary */}
+        <section class="metrics-strip">
+          <div class="metric-card">
+            <span class="metric-label">Date Washes</span>
+            <span class="metric-value primary">{washes.length}</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Collected</span>
+            <span class="metric-value success">₹{totalRevenue}</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Pending</span>
+            <span class={`metric-value ${totalPending > 0 ? 'warning' : ''}`}>₹{totalPending}</span>
+          </div>
+        </section>
+
         {/* Date Filter & Search Row */}
         <div class="glass-panel" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
