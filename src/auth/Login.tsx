@@ -37,18 +37,18 @@ export const Login = () => {
   };
 
   return (
-    <div class="app-shell" style={{ backgroundColor: '#ffffff' }}>
+    <div class="app-shell" style={{ backgroundColor: '#ffffff', minHeight: '100dvh' }}>
       {/* Top Hero Banner matching the user's reference mockup */}
       <div style={{ position: 'relative', width: '100%', overflow: 'hidden', background: '#0f172a' }}>
         <img 
           src={loginHeroImg} 
           alt="CEAT Vehicle Wash & Care" 
-          style={{ width: '100%', height: '240px', objectFit: 'cover', display: 'block' }}
+          style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
         />
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(to top, #ffffff 0%, rgba(15,23,42,0.3) 60%, rgba(15,23,42,0.65) 100%)',
+          background: 'linear-gradient(to top, #ffffff 0%, rgba(15,23,42,0.2) 65%, rgba(15,23,42,0.65) 100%)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -57,18 +57,18 @@ export const Login = () => {
           {/* Top Tag Badge */}
           <div style={{
             alignSelf: 'center',
-            background: 'rgba(15, 23, 42, 0.8)',
+            background: 'rgba(15, 23, 42, 0.85)',
             backdropFilter: 'blur(10px)',
             color: '#ffffff',
-            padding: '6px 16px',
+            padding: '6px 18px',
             borderRadius: '24px',
             fontSize: '12px',
             fontWeight: '800',
             letterSpacing: '0.5px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px'
+            gap: '8px'
           }}>
             <span>⏱ At Your Time</span>
             <span>•</span>
@@ -79,28 +79,34 @@ export const Login = () => {
         </div>
       </div>
 
-      {/* Main Login Form Container */}
+      {/* Main Login Form Container - comfortably spaced down for thumb reach */}
       <div style={{ 
         flex: 1, 
-        padding: '0 20px calc(24px + var(--safe-bottom)) 20px', 
+        padding: '20px 22px calc(24px + var(--safe-bottom)) 22px', 
         display: 'flex', 
         flexDirection: 'column',
         justifyContent: 'space-between'
       }}>
-        <div>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          flex: 1, 
+          justifyContent: 'center',
+          paddingTop: '8px'
+        }}>
           {/* Title and Tagline */}
-          <div style={{ textAlign: 'center', margin: '12px 0 20px 0' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.5px', lineHeight: '1.2' }}>
+          <div style={{ textAlign: 'center', marginBottom: '22px' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.5px', lineHeight: '1.2' }}>
               India’s #1
             </h1>
-            <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.3px', marginTop: '2px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.3px', marginTop: '4px' }}>
               Car & Bike Care App
             </h2>
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '12px', 
-              margin: '18px 0 16px 0',
+              margin: '20px 0 14px 0',
               color: 'var(--text-muted)',
               fontSize: '13px',
               fontWeight: '600'
@@ -116,7 +122,7 @@ export const Login = () => {
               background: 'var(--danger-bg)',
               border: '1px solid var(--danger-border)',
               color: 'var(--danger)',
-              padding: '10px 14px',
+              padding: '12px 14px',
               borderRadius: 'var(--radius-md)',
               fontSize: '13px',
               display: 'flex',
@@ -129,21 +135,22 @@ export const Login = () => {
             </div>
           )}
 
-          <form onSubmit={handleLogin} class="flex-col gap-3">
+          {/* Form with lower positioning and generous touch spacing */}
+          <form onSubmit={handleLogin} class="flex-col" style={{ gap: '16px', marginTop: '6px' }}>
             {/* Email Field with Icon */}
             <div>
-              <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+              <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
                 Email Address
               </label>
               <div style={{ position: 'relative' }}>
-                <Mail size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <Mail size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input 
                   type="email" 
                   class="input-glass" 
                   placeholder="worker1@wash.ceat.in"
                   value={email}
                   onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
-                  style={{ paddingLeft: '42px', minHeight: '50px', fontSize: '15px' }}
+                  style={{ paddingLeft: '46px', minHeight: '52px', fontSize: '15px' }}
                   required
                 />
               </div>
@@ -151,18 +158,18 @@ export const Login = () => {
 
             {/* Password Field with Icon */}
             <div>
-              <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+              <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
                 Password
               </label>
               <div style={{ position: 'relative' }}>
-                <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <Lock size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input 
                   type="password" 
                   class="input-glass" 
                   placeholder="••••••••"
                   value={password}
                   onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
-                  style={{ paddingLeft: '42px', minHeight: '50px', fontSize: '15px' }}
+                  style={{ paddingLeft: '46px', minHeight: '52px', fontSize: '15px' }}
                   required
                 />
               </div>
@@ -174,7 +181,7 @@ export const Login = () => {
               disabled={loading}
               style={{
                 width: '100%',
-                minHeight: '52px',
+                minHeight: '54px',
                 borderRadius: 'var(--radius-md)',
                 backgroundColor: '#0f172a',
                 color: '#ffffff',
@@ -186,8 +193,8 @@ export const Login = () => {
                 justifyContent: 'center',
                 gap: '10px',
                 cursor: 'pointer',
-                marginTop: '8px',
-                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.25)',
+                marginTop: '10px',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)',
                 transition: 'transform 0.15s ease'
               }}
             >
@@ -197,8 +204,8 @@ export const Login = () => {
           </form>
 
           {/* Quick 1-Tap Demo Credentials */}
-          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '8px', fontWeight: '700', letterSpacing: '0.5px' }}>
+          <div style={{ marginTop: '26px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '10px', fontWeight: '700', letterSpacing: '0.6px' }}>
               QUICK DEMO ACCESS
             </div>
             <div class="grid-2">
@@ -206,7 +213,7 @@ export const Login = () => {
                 type="button" 
                 class="secondary-action-btn"
                 onClick={() => fillDemo('worker')}
-                style={{ fontSize: '12px', minHeight: '40px', gap: '6px' }}
+                style={{ fontSize: '12px', minHeight: '42px', gap: '6px' }}
               >
                 <UserCheck size={14} color="var(--primary)" />
                 <span>Worker Login</span>
@@ -215,7 +222,7 @@ export const Login = () => {
                 type="button" 
                 class="secondary-action-btn"
                 onClick={() => fillDemo('admin')}
-                style={{ fontSize: '12px', minHeight: '40px', gap: '6px' }}
+                style={{ fontSize: '12px', minHeight: '42px', gap: '6px' }}
               >
                 <ShieldCheck size={14} color="#7c3aed" />
                 <span>Admin Login</span>
