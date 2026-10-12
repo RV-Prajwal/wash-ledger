@@ -3,7 +3,7 @@ import { useState } from 'preact/hooks';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { route } from 'preact-router';
-import { LogIn, AlertCircle, Mail, Lock } from 'lucide-preact';
+import { LogIn, AlertCircle, Mail, Lock, ShieldCheck, UserCheck } from 'lucide-preact';
 import loginHeroImg from '../assets/login-hero.jpg';
 
 export const Login = () => {
@@ -26,46 +26,46 @@ export const Login = () => {
     }
   };
 
+  const fillDemo = (role: 'worker' | 'admin') => {
+    if (role === 'worker') {
+      setEmail('worker1@wash.ceat.in');
+      setPassword('worker123');
+    } else {
+      setEmail('admin@wash.ceat.in');
+      setPassword('admin123');
+    }
+  };
+
   return (
-    <div 
-      class="app-shell" 
-      style={{ 
-        backgroundColor: '#ffffff', 
-        height: '100dvh', 
-        maxHeight: '100dvh', 
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column'
-      }}
-    >
-      {/* Top Hero Banner - proportional height */}
-      <div style={{ position: 'relative', width: '100%', height: '34vh', minHeight: '190px', maxHeight: '250px', overflow: 'hidden', background: '#0f172a', flexShrink: 0 }}>
+    <div class="app-shell" style={{ backgroundColor: '#ffffff', minHeight: '100dvh' }}>
+      {/* Top Hero Banner matching the user's reference mockup */}
+      <div style={{ position: 'relative', width: '100%', overflow: 'hidden', background: '#0f172a' }}>
         <img 
           src={loginHeroImg} 
           alt="CEAT Vehicle Wash & Care" 
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 40%', display: 'block' }}
+          style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
         />
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.02) 40%, rgba(15,23,42,0.2) 70%, rgba(15,23,42,0.65) 100%)',
+          background: 'linear-gradient(to top, #ffffff 0%, rgba(15,23,42,0.2) 65%, rgba(15,23,42,0.65) 100%)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          padding: 'max(14px, var(--safe-top)) 16px 12px 16px'
+          padding: 'max(16px, var(--safe-top)) 16px 16px 16px'
         }}>
           {/* Top Tag Badge */}
           <div style={{
             alignSelf: 'center',
-            background: 'rgba(15, 23, 42, 0.88)',
+            background: 'rgba(15, 23, 42, 0.85)',
             backdropFilter: 'blur(10px)',
             color: '#ffffff',
             padding: '6px 18px',
             borderRadius: '24px',
-            fontSize: '11px',
+            fontSize: '12px',
             fontWeight: '800',
             letterSpacing: '0.5px',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
             display: 'flex',
             alignItems: 'center',
             gap: '8px'
@@ -79,32 +79,36 @@ export const Login = () => {
         </div>
       </div>
 
-      {/* Main Login Form Container - fits remaining viewport without scrolling */}
+      {/* Main Login Form Container - comfortably spaced down for thumb reach */}
       <div style={{ 
         flex: 1, 
-        padding: '8px 22px calc(14px + var(--safe-bottom)) 22px', 
+        padding: '20px 22px calc(24px + var(--safe-bottom)) 22px', 
         display: 'flex', 
         flexDirection: 'column',
-        justifyContent: 'space-between',
-        overflow: 'hidden'
+        justifyContent: 'space-between'
       }}>
-        {/* Form area */}
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          flex: 1, 
+          justifyContent: 'center',
+          paddingTop: '8px'
+        }}>
           {/* Title and Tagline */}
-          <div style={{ textAlign: 'center', marginBottom: '14px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.5px', lineHeight: '1.15' }}>
+          <div style={{ textAlign: 'center', marginBottom: '22px' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.5px', lineHeight: '1.2' }}>
               India’s #1
             </h1>
-            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.3px', marginTop: '2px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.3px', marginTop: '4px' }}>
               Car & Bike Care App
             </h2>
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '12px', 
-              margin: '12px 0 6px 0',
+              margin: '20px 0 14px 0',
               color: 'var(--text-muted)',
-              fontSize: '12px',
+              fontSize: '13px',
               fontWeight: '600'
             }}>
               <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
@@ -118,35 +122,35 @@ export const Login = () => {
               background: 'var(--danger-bg)',
               border: '1px solid var(--danger-border)',
               color: 'var(--danger)',
-              padding: '8px 12px',
+              padding: '12px 14px',
               borderRadius: 'var(--radius-md)',
-              fontSize: '12px',
+              fontSize: '13px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              marginBottom: '10px'
+              marginBottom: '16px'
             }}>
-              <AlertCircle size={14} style={{ flexShrink: 0 }} />
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
               <span>{error}</span>
             </div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Form with lower positioning and generous touch spacing */}
+          <form onSubmit={handleLogin} class="flex-col" style={{ gap: '16px', marginTop: '6px' }}>
             {/* Email Field with Icon */}
             <div>
-              <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-muted)', marginBottom: '5px', display: 'block' }}>
+              <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
                 Email Address
               </label>
               <div style={{ position: 'relative' }}>
-                <Mail size={17} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <Mail size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input 
                   type="email" 
                   class="input-glass" 
-                  placeholder="name@wash.ceat.in"
+                  placeholder="worker1@wash.ceat.in"
                   value={email}
                   onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
-                  style={{ paddingLeft: '44px', minHeight: '48px', fontSize: '15px' }}
+                  style={{ paddingLeft: '46px', minHeight: '52px', fontSize: '15px' }}
                   required
                 />
               </div>
@@ -154,18 +158,18 @@ export const Login = () => {
 
             {/* Password Field with Icon */}
             <div>
-              <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-muted)', marginBottom: '5px', display: 'block' }}>
+              <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
                 Password
               </label>
               <div style={{ position: 'relative' }}>
-                <Lock size={17} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <Lock size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input 
                   type="password" 
                   class="input-glass" 
                   placeholder="••••••••"
                   value={password}
                   onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
-                  style={{ paddingLeft: '44px', minHeight: '48px', fontSize: '15px' }}
+                  style={{ paddingLeft: '46px', minHeight: '52px', fontSize: '15px' }}
                   required
                 />
               </div>
@@ -177,31 +181,58 @@ export const Login = () => {
               disabled={loading}
               style={{
                 width: '100%',
-                minHeight: '50px',
+                minHeight: '54px',
                 borderRadius: 'var(--radius-md)',
                 backgroundColor: '#0f172a',
                 color: '#ffffff',
                 border: 'none',
                 fontWeight: '800',
-                fontSize: '15px',
+                fontSize: '16px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '10px',
                 cursor: 'pointer',
-                marginTop: '6px',
+                marginTop: '10px',
                 boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)',
                 transition: 'transform 0.15s ease'
               }}
             >
-              <LogIn size={18} />
+              <LogIn size={20} />
               <span>{loading ? 'Authenticating...' : 'Login / Sign In'}</span>
             </button>
           </form>
+
+          {/* Quick 1-Tap Demo Credentials */}
+          <div style={{ marginTop: '26px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '10px', fontWeight: '700', letterSpacing: '0.6px' }}>
+              QUICK DEMO ACCESS
+            </div>
+            <div class="grid-2">
+              <button 
+                type="button" 
+                class="secondary-action-btn"
+                onClick={() => fillDemo('worker')}
+                style={{ fontSize: '12px', minHeight: '42px', gap: '6px' }}
+              >
+                <UserCheck size={14} color="var(--primary)" />
+                <span>Worker Login</span>
+              </button>
+              <button 
+                type="button" 
+                class="secondary-action-btn"
+                onClick={() => fillDemo('admin')}
+                style={{ fontSize: '12px', minHeight: '42px', gap: '6px' }}
+              >
+                <ShieldCheck size={14} color="#7c3aed" />
+                <span>Admin Login</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Footer legal disclaimer */}
-        <p style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-subtle)', marginTop: '8px', lineHeight: '1.35', flexShrink: 0 }}>
+        <p style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-subtle)', marginTop: '24px', lineHeight: '1.4' }}>
           By proceeding you agree to the <br />
           <strong style={{ color: 'var(--text-muted)' }}>Terms & Conditions</strong> and <strong style={{ color: 'var(--text-muted)' }}>Privacy Policy</strong>
         </p>
